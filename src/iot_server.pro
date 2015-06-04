@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core network bluetooth script sql
+QT       += core network script sql
 QT += serialport
 QT       -= gui
 
@@ -18,7 +18,6 @@ TEMPLATE = app
 SOURCES += main.cpp \
     SmartHomeServer.cpp \
     SmartHomeClient.cpp \
-    BleScanner.cpp \
     IotEventSetting.cpp \
     IotEvent.cpp \
     DjangoInterface.cpp \
@@ -27,7 +26,6 @@ SOURCES += main.cpp \
 HEADERS += \
     SmartHomeServer.h \
     SmartHomeClient.h \
-    BleScanner.h \
     IotEventSetting.h \
     IotEvent.h \
     DjangoInterface.h \
