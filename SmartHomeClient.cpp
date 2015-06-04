@@ -24,14 +24,12 @@ SmartHomeClient::SmartHomeClient(QTcpSocket* socket, SmartHomeServer* parent) :
    //m_ping_timer.start();
 
    m_remove_timer.setSingleShot(true);
-   m_remove_timer.setInterval(1000);
+   m_remove_timer.setInterval(2000);
    connect(&m_remove_timer, SIGNAL(timeout()), this, SIGNAL(disconnected()));
 
 
 
-
 }
-
 
 
 void SmartHomeClient::readData()
@@ -70,7 +68,7 @@ void SmartHomeClient::readData()
 }
 void SmartHomeClient::parseMessages(quint8 type, QByteArray payload)
 {
-    qDebug() << "parseMessages" << type;
+    //qDebug() << "parseMessages" << type;
     switch (type) {
     case DEVICE_DESCRIPTION:
     {
@@ -81,6 +79,17 @@ void SmartHomeClient::parseMessages(quint8 type, QByteArray payload)
         QJsonObject root = d.object();
         m_id = root["id"].toString();
         m_name = root["name"].toString();
+
+        QVariantMap* variablesMap =  new QVariantMap();
+
+        QJsonArray variables = root["variables"].toArray();
+
+        for(int i=0;i<variables.size();i++)
+        {
+            QJsonObject variable = variables.at(i).toObject();
+            variablesMap->insert(variable["resource"].toString(), variable["value"].toInt());
+        }
+        m_server->getVariablesStorage()->insert(m_id,variablesMap);
 
         qDebug() << "DEVICE_DESCRIPTION" << m_id << m_name;
 
@@ -114,6 +123,19 @@ void SmartHomeClient::parseMessages(quint8 type, QByteArray payload)
     case VALUE_CHANGED:
     {
         QList<SmartHomeClient*> clients = m_server->getClientList();
+
+        QJsonDocument d = QJsonDocument::fromJson(payload);
+        QJsonObject root = d.object();
+        QString id = root["id"].toString();
+
+
+        QVariantMap* storedVariables = m_server->getVariablesStorage(id);
+
+        storedVariables->insert(root["resource"].toString(), root["value"].toInt());
+
+
+
+
         for(int i=0; i<clients.size();i++)
         {
             if (clients.at(i)->getID().contains("controller:"))
@@ -147,13 +169,28 @@ void SmartHomeClient::parseMessages(quint8 type, QByteArray payload)
     {
         QJsonDocument d = QJsonDocument::fromJson(payload);
         QJsonObject root = d.object();
+        QString client_id = root["client_id"].toString();
+
         QString id = root["client_id"].toString();
+
+        QVariantMap* storedVariables = m_server->getVariablesStorage(id);
+
+        QJsonArray variables = root["variables"].toArray();
+
+        for(int i=0;i<variables.size();i++)
+        {
+            QJsonObject variable = variables.at(i).toObject();
+            storedVariables->insert(variable["resource"].toString(), variable["value"].toInt());
+        }
+
+
+
 
         QList<SmartHomeClient*> clients = m_server->getClientList();
 
         for(int i=0; i<clients.size();i++)
         {
-            if (clients.at(i)->getID() == id)
+            if (clients.at(i)->getID() == client_id)
             {
                 clients.at(i)->sendValuesList(payload);
                 break;
@@ -163,8 +200,10 @@ void SmartHomeClient::parseMessages(quint8 type, QByteArray payload)
         break;
     }
     case PING_RESPONSE:
+    {
+        qDebug() << m_name << "PING_RESPONSE";
         m_remove_timer.stop();
-
+    }
     default:
         break;
     }
@@ -213,7 +252,6 @@ void SmartHomeClient::sendPing()
     m_socket->write(data);
     m_socket->flush();
 
-
     m_remove_timer.start();
 }
 void SmartHomeClient::sendChangeValue(QByteArray payload)
@@ -232,9 +270,36 @@ void SmartHomeClient::sendChangeValue(QByteArray payload)
     m_socket->flush();
 
 }
+void SmartHomeClient::sendChangeValue(QString resource, qint32 value)
+{
+    //qDebug() << "SmartHomeClient::SmartHomeClient" << m_id << resource << value;
+
+    QString json;
+    QJsonObject root;
+
+    root["id"] = m_id;
+    root["resource"] = resource;
+    root["value"] = value;
+
+    json = QJsonDocument(root).toJson();
+
+    QByteArray data;
+    QDataStream stream(&data, QIODevice::ReadWrite);
+
+    stream << static_cast<quint32>(SMART_HOME_HEADER);
+    stream << static_cast<quint8>(CHANGE_VALUE);
+    stream << static_cast<quint16>(json.size());
+
+    for(int i=0; i< json.size();i++)
+        stream << static_cast<quint8>(json.at(i).toLatin1());
+
+    m_socket->write(data);
+    m_socket->flush();
+
+
+}
 void SmartHomeClient::sendVariableChanged(QByteArray payload)
 {
-    qDebug() << "sendVariableChanged" << m_id << payload;
     QByteArray data;
     QDataStream stream(&data, QIODevice::ReadWrite);
 

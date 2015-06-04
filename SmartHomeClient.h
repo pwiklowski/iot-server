@@ -56,10 +56,12 @@ public slots:
     void sendGetValuesList(QByteArray payload);
     void sendValuesList(QByteArray payload);
     void sendPing();
+    void sendChangeValue(QString resource, qint32 value);
 private:
     QString generateDeviceList();
 
     SmartHomeServer* m_server;
+    QMap<QString, QVariantMap*> m_variablesDetails;
     QTcpSocket* m_socket;
     QByteArray m_buffer;
     QString m_description;
