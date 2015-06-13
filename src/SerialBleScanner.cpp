@@ -2,31 +2,41 @@
 #include "QDebug"
 #include "QTimer"
 #include "QMutexLocker"
+#include "QSerialPort"
+#include "QSerialPortInfo"
 
 SerialBleScanner::SerialBleScanner(QObject* parent):
     QObject(parent)
 {
-    m_serial.setPortName("/dev/ttyUSB1");
-    m_serial.setBaudRate(QSerialPort::Baud115200);
-    m_serial.setDataBits(QSerialPort::Data8);
-    m_serial.setParity(QSerialPort::NoParity);
-    m_serial.setStopBits(QSerialPort::OneStop);
-    m_serial.setFlowControl(QSerialPort::NoFlowControl);
+    QList<QSerialPortInfo> infos = QSerialPortInfo::availablePorts();
+
+    foreach (QSerialPortInfo info, infos)
+    {
+        qDebug() << info.portName();
+    }
 
 
-    bool res = m_serial.open(QIODevice::ReadWrite);
-//    qDebug() << res;
+    m_serial = new QSerialPort(infos.at(0), this);
+    bool res = m_serial->open(QIODevice::ReadWrite);
+    qDebug() << res;
+    m_serial->setBaudRate(QSerialPort::Baud115200);
+    m_serial->setDataBits(QSerialPort::Data8);
+    m_serial->setParity(QSerialPort::NoParity);
+    m_serial->setStopBits(QSerialPort::OneStop);
+    m_serial->setFlowControl(QSerialPort::NoFlowControl);
 }
 
 
 void SerialBleScanner::read()
 {
     QMutexLocker locker(&mutex);
-    m_serial.waitForReadyRead(1000);
-    QByteArray data = m_serial.readAll();
+    if (m_serial->isOpen())
+    {
+        m_serial->waitForReadyRead(1000);
+        QByteArray data = m_serial->readAll();
 
-    m_buffer.append(data);
-
+        m_buffer.append(data);
+    }
     QTimer::singleShot(20,this, SLOT(read()));
 
     QMetaObject::invokeMethod(this, "parseMessage", Qt::QueuedConnection);
