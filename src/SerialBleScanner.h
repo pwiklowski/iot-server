@@ -22,7 +22,7 @@ public slots:
 private:
     QMutex mutex;
 
-    QSerialPort m_serial;
+    QSerialPort* m_serial;
     QByteArray m_buffer;
 };
 
