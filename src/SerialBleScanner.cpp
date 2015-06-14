@@ -4,28 +4,36 @@
 #include "QMutexLocker"
 #include "QSerialPort"
 #include "QSerialPortInfo"
+#include "Settings.h"
 
 SerialBleScanner::SerialBleScanner(QObject* parent):
     QObject(parent)
 {
-    QList<QSerialPortInfo> infos = QSerialPortInfo::availablePorts();
+    Settings settings;
 
-    QSerialPortInfo port;
-
-    foreach (QSerialPortInfo info, infos)
+    if (settings.getValue("port").toString().isEmpty())
     {
-        qDebug() << info.portName();
-        if (info.portName().contains("USB"))
+        QList<QSerialPortInfo> infos = QSerialPortInfo::availablePorts();
+        QSerialPortInfo port;
+        foreach (QSerialPortInfo info, infos)
         {
-            port = info;
-            break;
+            qDebug() << info.portName();
+            if (info.portName().contains("USB"))
+            {
+                port = info;
+                break;
+            }
         }
+
+        m_serial = new QSerialPort(port, this);
+    }
+    else
+    {
+        m_serial = new QSerialPort(settings.getValue("port").toString(), this);
     }
 
-
-    m_serial = new QSerialPort(port, this);
     bool res = m_serial->open(QIODevice::ReadWrite);
-    qDebug() << res;
+    qDebug() << "Serial port opened" << res;
     m_serial->setBaudRate(QSerialPort::Baud115200);
     m_serial->setDataBits(QSerialPort::Data8);
     m_serial->setParity(QSerialPort::NoParity);
