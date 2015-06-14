@@ -8,8 +8,7 @@
 Settings::Settings(QObject *parent) :
     QObject(parent)
 {
-
-    QFile settingsFile("iotserver.conafig");
+    QFile settingsFile("iotserver.config");
     if (settingsFile.open(QFile::ReadOnly))
     {
         QString set = settingsFile.readAll();

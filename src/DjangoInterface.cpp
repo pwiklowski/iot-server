@@ -104,7 +104,7 @@ void DjangoInterface::parseMessages(quint8 type, QByteArray payload, QTcpSocket*
 
 
                 QJsonObject params;
-                params["source"] = source;
+                params["uuid"] = source;
 
                 params["last"] = QString(QJsonDocument::fromVariant(parameters).toJson());
 
