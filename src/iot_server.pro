@@ -21,7 +21,8 @@ SOURCES += main.cpp \
     IotEventSetting.cpp \
     IotEvent.cpp \
     DjangoInterface.cpp \
-    SerialBleScanner.cpp
+    SerialBleScanner.cpp \
+    Settings.cpp
 
 HEADERS += \
     SmartHomeServer.h \
@@ -29,4 +30,5 @@ HEADERS += \
     IotEventSetting.h \
     IotEvent.h \
     DjangoInterface.h \
-    SerialBleScanner.h
+    SerialBleScanner.h \
+    Settings.h
