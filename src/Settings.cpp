@@ -8,7 +8,7 @@
 Settings::Settings(QObject *parent) :
     QObject(parent)
 {
-    QFile settingsFile("iotserver.config");
+    QFile settingsFile("/usr/local/wiklosoft/ioserver.config");
     if (settingsFile.open(QFile::ReadOnly))
     {
         QString set = settingsFile.readAll();
