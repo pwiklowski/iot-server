@@ -2,24 +2,24 @@
 #include "IotEvent.h"
 #include "SerialBleScanner.h"
 #include "QThread"
-
+#include "Settings.h"
 #include "QDateTime"
 
 
 SmartHomeServer::SmartHomeServer(QObject *parent) :
     QObject(parent)
 {
+    Settings* settings = new Settings(this);
     m_server.listen(QHostAddress::Any, 9999);
 
     connect(&m_server, SIGNAL(newConnection()), this, SLOT(handleNewConnection()));
 
-
-    //mBleScanner = new BleScanner(this);
-    //connect(mBleScanner,SIGNAL(iotEventReceived(QString,QByteArray)), this, SLOT(iotEventReceived(QString,QByteArray)));
-
     m_db = QSqlDatabase::addDatabase("QSQLITE");
-    m_db.setDatabaseName("/home/pawwik/dev/iot_webui/db.sqlite3");
-    m_db.open();
+    m_db.setDatabaseName(settings->getValue("database").toString());
+    if (!m_db.open())
+    {
+        qWarning() << "Unable to open database";
+    }
 
     temp = engine.newObject();
 
@@ -32,7 +32,7 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
 
     QMetaObject::invokeMethod(m_serialScanner, "read", Qt::QueuedConnection);
     connect(m_serialScanner,SIGNAL(iotEventReceived(QString,QByteArray)), this, SLOT(iotEventReceived(QString,QByteArray)));
-
+    qDebug() << "IoT Server started";
 }
 
 
