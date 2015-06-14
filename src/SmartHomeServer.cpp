@@ -15,6 +15,7 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
     connect(&m_server, SIGNAL(newConnection()), this, SLOT(handleNewConnection()));
 
     m_db = QSqlDatabase::addDatabase("QSQLITE");
+    m_db.setConnectOptions("QSQLITE_OPEN_READONLY");
     m_db.setDatabaseName(settings->getValue("database").toString());
     if (!m_db.open())
     {
