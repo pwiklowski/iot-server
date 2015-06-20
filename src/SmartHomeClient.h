@@ -41,9 +41,11 @@ public:
     QString getName(){return m_name;}
     QString getID(){return m_id;}
     QString getDescription(){return m_description;}
+    void close();
 signals:
     void disconnected();
 public slots:
+    void pingTimeout();
     void readData();
     void parseMessages(quint8 type, QByteArray payload);
 

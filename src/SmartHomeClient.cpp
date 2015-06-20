@@ -21,16 +21,20 @@ SmartHomeClient::SmartHomeClient(QTcpSocket* socket, SmartHomeServer* parent) :
    m_ping_timer.setSingleShot(false);
    m_ping_timer.setInterval(3000);
    connect(&m_ping_timer, SIGNAL(timeout()), this, SLOT(sendPing()));
-   //m_ping_timer.start();
+   m_ping_timer.start();
 
    m_remove_timer.setSingleShot(true);
    m_remove_timer.setInterval(2000);
-   connect(&m_remove_timer, SIGNAL(timeout()), this, SIGNAL(disconnected()));
+   connect(&m_remove_timer, SIGNAL(timeout()), this, SLOT(pingTimeout()));
 
 
 
 }
-
+void SmartHomeClient::pingTimeout()
+{
+    qDebug() << "pingTimeout" << m_name;
+    m_socket->close();
+}
 
 void SmartHomeClient::readData()
 {
@@ -46,7 +50,7 @@ void SmartHomeClient::readData()
     stream >> header;
     if (header != SMART_HOME_HEADER)
     {
-        qWarning() << "Invalid header";
+        qWarning() << m_name << "Invalid header";
         m_buffer.remove(0,1);
         readData();
     }
@@ -56,7 +60,7 @@ void SmartHomeClient::readData()
 
     if (m_buffer.size() < 7 + size)
     {
-        qWarning() << "Not complete message";
+        qWarning() << "Not complete message" << m_buffer.size() << (7+size);
         return;
     }
     QByteArray payload = m_buffer.mid(7, size);
@@ -201,7 +205,7 @@ void SmartHomeClient::parseMessages(quint8 type, QByteArray payload)
     }
     case PING_RESPONSE:
     {
-        qDebug() << m_name << "PING_RESPONSE";
+        qDebug() << m_id << "PING_RESPONSE" << 2000-m_remove_timer.remainingTime();
         m_remove_timer.stop();
     }
     default:
@@ -399,4 +403,9 @@ void SmartHomeClient::deviceListChanged()
             clients.at(i)->sendDeviceListChanged();
         }
     }
+}
+void SmartHomeClient::close(){
+    if (m_socket && m_socket->isOpen())
+        m_socket->close();
+
 }
