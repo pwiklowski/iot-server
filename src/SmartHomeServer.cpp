@@ -208,9 +208,12 @@ bool SmartHomeServer::setValue(QString id, QString resource, qint32 value)
 
 void SmartHomeServer::removeClient()
 {
-    qDebug() << "removeClient";
     SmartHomeClient* client = (SmartHomeClient*) sender();
+
+    qDebug() << "removeClient" << client->getName() << client->getID();
     disconnect(this, SIGNAL(clientListChanged()), client, SLOT(deviceListChanged()));
+    client->close();
+
 
     delete client;
     m_clientList.removeOne(client);
