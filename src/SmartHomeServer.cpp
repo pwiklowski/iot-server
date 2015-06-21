@@ -41,7 +41,7 @@ QStringList SmartHomeServer::getScripts(QString src)
 {
     QStringList scripts;
 
-    QSqlQuery query = m_db.exec("SELECT * FROM webui_iotbutton WHERE source='"+src+"';");
+    QSqlQuery query = m_db.exec("SELECT * FROM webui_iotbutton WHERE uuid='"+src+"';");
     while (query.next()) {
         scripts << query.value(2).toString();
     }
