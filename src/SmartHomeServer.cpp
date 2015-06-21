@@ -1,3 +1,4 @@
+#include "QUrl"
 #include "SmartHomeServer.h"
 #include "IotEvent.h"
 #include "SerialBleScanner.h"
@@ -130,7 +131,7 @@ void SmartHomeServer::iotEventReceived(QString source,  QByteArray eventData)
             QStringList scripts  = getScripts(source);
             foreach(QString script, scripts)
             {
-                QScriptValue error = engine.evaluate(script);
+                QScriptValue error = engine.evaluate(QUrl::fromPercentEncoding(script.toLatin1()));
                 qDebug() << "error" << error.toString();
 
             }
