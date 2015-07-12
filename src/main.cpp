@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <unistd.h>
-
+#include "DiscoveryListener.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
     qInstallMessageHandler(myMessageHandler);
     init_daemon();
     QCoreApplication a(argc, argv);
-
+    DiscoveryListener dl;
     SmartHomeServer server;
 
     DjangoInterface dj(&server);
