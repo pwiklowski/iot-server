@@ -346,10 +346,7 @@ QString SmartHomeClient::generateDeviceList()
         if (clients.at(i)->getID() == m_id) continue;
         if (clients.at(i)->getID().contains("controller:")) continue;
 
-        QJsonObject device;
-        device["name"] = clients.at(i)->getName();
-        device["id"] = clients.at(i)->getID();
-        device["description"] = clients.at(i)->getDescription();
+        QJsonObject device = QJsonDocument::fromJson(clients.at(i)->getDescription().toUtf8()).object();
         devices.append(device);
     }
 
