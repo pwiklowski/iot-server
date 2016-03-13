@@ -55,17 +55,15 @@ void DjangoInterface::parseMessages(quint8 type, QByteArray payload, QTcpSocket*
     switch (type) {
         case DJANGO_GET_DEVICE_LIST:
         {
-            QList<SmartHomeClient*> devices = m_controller->getClientList();
+            QList<Device*> devices = m_controller->getClientList();
             QJsonObject root;
             QString json;
             QJsonArray devs;
 
             for(int i=0; i<devices.length();i++)
             {
-                SmartHomeClient* device = devices.at(i);
+                Device* device = devices.at(i);
 
-                if (device->getID().startsWith("controller"))
-                    continue;
                 QJsonObject dev;
                 dev["name"] = device->getName();
                 dev["id"] = device->getID().remove("device:");
@@ -88,58 +86,21 @@ void DjangoInterface::parseMessages(quint8 type, QByteArray payload, QTcpSocket*
             socket->flush();
             break;
         }
-        case DJANGO_GET_BUTTON_LIST:
-        {
-            QMap<QString, QVariantMap> lastEvents = m_controller->getLastEventMap();
-            QJsonObject root;
-            QString json;
-            QJsonArray buttons;
-
-            QStringList sources = lastEvents.keys();
-
-            for(int i=0;i<sources.size();i++)
-            {
-                QString source = sources.at(i);
-                QVariantMap parameters = lastEvents.value(source);
-
-
-                QJsonObject params;
-                params["uuid"] = source;
-
-                params["last"] = QString(QJsonDocument::fromVariant(parameters).toJson());
-
-                buttons.append(params);
-            }
-            root.insert("buttons", buttons);
-            json = QJsonDocument(root).toJson();
-
-            QByteArray data;
-            QDataStream stream(&data, QIODevice::ReadWrite);
-
-            stream << static_cast<quint8>(DJANGO_BUTTON_LIST);
-            stream << static_cast<quint16>(json.size());
-
-            for(int i=0; i< json.size();i++)
-                stream << static_cast<quint8>(json.at(i).toLatin1());
-
-            socket->write(data);
-            socket->flush();
-            break;
-        }
         case DJANGO_GET_DEVICE_DESCRIPTION:
         {
             QJsonDocument d = QJsonDocument::fromJson(payload);
             QJsonObject request = d.object();
             QString id = request["client_id"].toString();
 
-            SmartHomeClient* client = m_controller->getClient("device:"+id);
+            qDebug() << "DJANGO_GET_DEVICE_DESCRIPTION" << id;
+            Device* client = m_controller->getClient(id);
 
 
             QString json;
 
             if (client !=0)
             {
-                json = client->getDescription();
+                //json = client->getDescription();
             }
 
             QByteArray data;
@@ -155,59 +116,6 @@ void DjangoInterface::parseMessages(quint8 type, QByteArray payload, QTcpSocket*
             socket->flush();
             break;
         }
-
-
-
-        case DJANGO_GET_SENSORS_LIST:
-        {
-            QMap<QString, QVariantMap> lastEvents = m_controller->getSensorsMap();
-            QJsonObject root;
-            QString json;
-            QJsonArray buttons;
-
-            QStringList sources = lastEvents.keys();
-
-            foreach(QString source, sources)
-            {
-                QVariantMap parameters = lastEvents.value(source);
-
-
-                QJsonObject params;
-                params["source"] = source;
-                params["last"] = QString(QJsonDocument::fromVariant(parameters).toJson());
-
-                buttons.append(params);
-            }
-            root.insert("sensors", buttons);
-            json = QJsonDocument(root).toJson();
-
-            QByteArray data;
-            QDataStream stream(&data, QIODevice::ReadWrite);
-
-            stream << static_cast<quint8>(DJANGO_SENSORS_LIST);
-            stream << static_cast<quint16>(json.size());
-
-            for(int i=0; i< json.size();i++)
-                stream << static_cast<quint8>(json.at(i).toLatin1());
-
-            socket->write(data);
-            socket->flush();
-            break;
-        }
-//        case DeviceController::CHANGE_VALUE:
-//        {
-//            QJsonDocument d = QJsonDocument::fromJson(payload);
-//            QJsonObject root = d.object();
-//            QString id = root["id"].toString();
-//            QString variable = root["variable"].toString();
-//            quint32 value = root["value"].toInt();
-
-//            m_controller->sendChangeVariable(id, variable, value);
-
-//            socket->write("OK");
-//            socket->flush();
-//            break;
-//        }
         case DJANGO_GET_VALUES_LIST:
         {
             QJsonDocument d = QJsonDocument::fromJson(payload);
@@ -216,7 +124,7 @@ void DjangoInterface::parseMessages(quint8 type, QByteArray payload, QTcpSocket*
 
             QString json;
 
-            QVariantMap* storedVariables = m_controller->getVariablesStorage("device:"+id);
+            QVariantMap* storedVariables = m_controller->getVariablesStorage(id);
 
 
 

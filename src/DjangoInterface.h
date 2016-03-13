@@ -4,7 +4,7 @@
 #include <QObject>
 #include "SmartHomeServer.h"
 #include "QTcpServer"
-
+#include "QTcpSocket"
 
 
 typedef enum

@@ -3,33 +3,17 @@
 
 #include <QObject>
 #include "QTcpServer"
-#include "SmartHomeClient.h"
 #include "IotEventSetting.h"
 #include "QtScript/QScriptEngine"
 #include "QMap"
 #include "QSqlDatabase"
 #include "QSqlQuery"
 #include "QSqlError"
-#include "SerialBleScanner.h"
 
-enum IotEventSource
-{
-    IOT_SINGLE_BUTTON = 2,
-    IOT_KNOB_WITH_BUTTON = 1,
-};
+#include <arpa/inet.h>
+#include <net/if.h>
 
-enum IotDeviceType
-{
-    IOT_BUTTON = 2,
-    IOT_SENSOR = 3,
-
-};
-
-enum IotSensorType
-{
-    IOT_SENSOR_LIGHT = 0,
-
-};
+#include "Device.h"
 
 
 
@@ -38,13 +22,13 @@ class SmartHomeServer : public QObject
     Q_OBJECT
 public:
     explicit SmartHomeServer(QObject *parent = 0);
-
+    static void* run(void* param);
+    OICClient* getClient(){return m_client;}
+    void setSocketFd(int s) { m_socketFd = s;}
 signals:
-    void clientListChanged();
+    void devicesChanged();
 public slots:
-    void handleNewConnection();
-    QList<SmartHomeClient*> getClientList();
-    void removeClient();
+    QList<Device*> getClientList();
     void iotEventReceived(QString source,  QByteArray eventData);
     quint16 getValue(QString id, QString resource){return getVariablesStorage(id)->value(resource).toInt();}
     bool setValue(QString id, QString resource, qint32 value);
@@ -54,22 +38,34 @@ public slots:
     QMap<QString, QVariantMap> getLastEventMap() { return m_lastEventMap;}
     QMap<QString, QVariantMap*>* getVariablesStorage() {return &m_variablesStorage;}
     QVariantMap* getVariablesStorage(QString client_id) {return m_variablesStorage.value(client_id);}
+    void findDevices();
 
 
-    SmartHomeClient* getClient(QString id);
+    Device* getClient(QString id);
 
     void saveGlobalObject(QString key, QScriptValue obj);
     QScriptValue getGlobalObject(QString key);
 
+    void onValueChanged(QString resource, QVariantMap value);
 private:
+    String convertAddress(sockaddr_in a);
+    bool isDeviceOnList(QString id);
+
+
+    void send_packet(sockaddr_in destination, COAPPacket* packet);
+    void send_packet(COAPPacket* packet);
+    OICClient* m_client;
+    QObject* m_parent;
+    pthread_t m_thread;
+    int m_socketFd;
+
     QMap<QString, quint8> m_ignoreMap;
     QMap<QString, QVariantMap> m_lastEventMap;
     QMap<QString, QVariantMap> m_sensorsMap;
     QStringList getScripts(QString src);
-     QScriptValue temp;
-     QScriptEngine engine;
+    QScriptValue temp;
+    QScriptEngine engine;
 
-    SerialBleScanner* m_serialScanner;
     QMap<QString, QVariantMap*> m_variablesStorage;
     QMap<QString,QScriptValue> m_cloudScriptStorage;
 
@@ -77,7 +73,7 @@ private:
 
     QSqlDatabase m_db;
     QTcpServer m_server;
-    QList<SmartHomeClient*>  m_clientList;
+    QList<Device*>  m_clientList;
     QList<IotEventSetting*> mSettingsList;
 };
 
