@@ -128,13 +128,23 @@ void DjangoInterface::parseMessages(quint8 type, QByteArray payload, QTcpSocket*
 
 
 
-            QJsonObject vars;
+            QJsonArray vars;
 
             if (storedVariables)
             {
                 foreach(QString key, storedVariables->keys())
                 {
-                    vars[key]= storedVariables->value(key).toInt();
+                    QVariantMap res = storedVariables->value(key).toMap();
+
+                    QJsonObject v;
+                    v["name"] = key;
+                    v["values"]= QJsonObject::fromVariantMap(res);
+                    vars.append(v);
+
+
+
+
+
                 }
             }
 
