@@ -41,13 +41,14 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
 }
 
 
-QStringList SmartHomeServer::getScripts(QString src)
+QStringList SmartHomeServer::getScripts(QString id)
 {
     QStringList scripts;
 
-    QSqlQuery query = m_db.exec("SELECT * FROM webui_iotbutton WHERE uuid='"+src+"';");
+    QSqlQuery query = m_db.exec("SELECT script FROM webui_iotscripts WHERE di='"+id+"';");
+    qDebug() << query.lastError().text();
     while (query.next()) {
-        scripts << query.value(2).toString();
+        scripts << query.value(0).toString();
     }
     return scripts;
 }
