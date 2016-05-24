@@ -30,10 +30,8 @@ signals:
 public slots:
     QList<Device*> getClientList();
     void iotEventReceived(QString source,  QByteArray eventData);
-    quint16 getValue(QString id, QString resource){return getVariablesStorage(id)->value(resource).toInt();}
-    bool setValue(QString id, QString resource, qint32 value);
-    QScriptValue getSensorValue(QString address);
-    QMap<QString, QVariantMap> getSensorsMap() { return m_sensorsMap;}
+    QVariant getValue(QString id, QString resource){return getVariablesStorage(id)->value(resource);}
+    bool setValue(QString id, QString resource, QVariantMap value);
 
     QMap<QString, QVariantMap> getLastEventMap() { return m_lastEventMap;}
     QMap<QString, QVariantMap*>* getVariablesStorage() {return &m_variablesStorage;}

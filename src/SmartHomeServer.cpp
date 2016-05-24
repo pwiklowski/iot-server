@@ -16,7 +16,9 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
 
     m_db = QSqlDatabase::addDatabase("QSQLITE");
     m_db.setConnectOptions("QSQLITE_OPEN_READONLY");
-    m_db.setDatabaseName(settings->getValue("database").toString());
+    //m_db.setDatabaseName(settings->getValue("database").toString());
+    m_db.setDatabaseName("/home/pawwik/dev/iot_webui/db.sqlite3");
+
     if (!m_db.open())
     {
         qWarning() << "Unable to open database";
@@ -38,6 +40,7 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
     t->setSingleShot(false);
 
 
+    qDebug() << getScripts("0685B960-736F-46F7-BEC0-9E6CBD61ADC1");
 }
 
 
@@ -70,61 +73,8 @@ QScriptValue SmartHomeServer::getGlobalObject(QString key)
 
 void SmartHomeServer::iotEventReceived(QString source,  QByteArray eventData)
 {
-    QVariantMap eventInfo;
-
-            QScriptValue event = engine.newObject();
-            event.setProperty("source",source);
-
-            {
-                eventInfo.insert("pressed", eventData.at(4));
-            }
-
-            event.setProperty("data", engine.toScriptValue(eventInfo));
-
-            engine.globalObject().setProperty("event", event);
-            engine.globalObject().setProperty("server", engine.newQObject(this));
-            engine.globalObject().setProperty("cloud", getGlobalObject(source));
-
-
-            QScriptValue time = engine.newObject();
-
-            time.setProperty("minute", QDateTime::currentDateTime().time().minute());
-            time.setProperty("hour", QDateTime::currentDateTime().time().hour());
-            time.setProperty("second", QDateTime::currentDateTime().time().second());
-            time.setProperty("day", QDateTime::currentDateTime().date().day());
-            time.setProperty("dayOfWeek", QDateTime::currentDateTime().date().dayOfWeek());
-            time.setProperty("month", QDateTime::currentDateTime().date().month());
-
-            engine.globalObject().setProperty("time", time);
-            QStringList scripts  = getScripts(source);
-            foreach(QString script, scripts)
-            {
-                QScriptValue error = engine.evaluate(QUrl::fromPercentEncoding(script.toLatin1()));
-                qDebug() << "error" << error.toString();
-            }
-            saveGlobalObject(source, engine.globalObject().property("cloud"));
-            m_lastEventMap.insert(source, eventInfo);
-        qDebug() << source << eventInfo;
-}
-QScriptValue SmartHomeServer::getSensorValue(QString address) {
-
-    QVariantMap value = m_sensorsMap.value(address);
-
-    QScriptValue scriptValue = engine.newObject();
-
-
-    foreach(QString key, value.keys())
-    {
-        scriptValue.setProperty(key,engine.toScriptValue(value.value(key)));
-    }
-
-
-
-    return scriptValue;
 
 }
-
-
 
 QList<Device *> SmartHomeServer::getClientList()
 {
@@ -142,12 +92,20 @@ Device *SmartHomeServer::getClient(QString id)
     return 0;
 }
 
-bool SmartHomeServer::setValue(QString id, QString resource, qint32 value)
+bool SmartHomeServer::setValue(QString id, QString resource, QVariantMap value)
 {
     Device* client = getClient(id);
 
     if (client!=0)
     {
+        DeviceVariable* variable = client->getVariable(resource);
+
+        if (variable != 0){
+            variable->post(value);
+
+        }
+
+
         return true;
     }
     return false;
@@ -164,43 +122,49 @@ bool SmartHomeServer::isDeviceOnList(QString id){
 void SmartHomeServer::findDevices()
 {
     m_client->searchDevices([&](COAPPacket* packet){
-        cbor* message = cbor::parse(packet->getPayload());
+        if (!packet) return false;
+        cbor message;
+        cbor::parse(&message, packet->getPayload());
 
-        if (message != 0){
+        if (packet->getCode() != COAP_RSPCODE_CONTENT)
+            return false;
 
-            for (uint16_t i=0; i<message->toArray()->size(); i++){
-                cbor* device = message->toArray()->at(i);
+        for (uint16_t i=0; i<message.toArray()->size(); i++){
+            cbor device = message.toArray()->at(i);
 
-                String name = device->getMapValue("n")->toString();
-                String di= device->getMapValue("di")->toString();
+            cbor naame = device.getMapValue("n");
+            String name = device.getMapValue("n").toString();
+            String di= device.getMapValue("di").toString();
 
-                qDebug() << "new device"<<  name.c_str() << di.c_str();
+            qDebug() << "new device"<<  name.c_str() << di.c_str();
 
-                if (isDeviceOnList(QString(di.c_str()))) continue;
+            if (isDeviceOnList(QString(di.c_str()))) continue;
 
-                cbor* links = device->getMapValue("links");
-                OICDevice* dev = new OICDevice(di, name, packet->getAddress(), m_client);
+            cbor links = device.getMapValue("links");
+            OICDevice* dev = new OICDevice(di, name, packet->getAddress(), m_client);
 
-                for (uint16_t j=0; j< links->toArray()->size(); j++){
-                    cbor* link = links->toArray()->at(j);
+            for (uint16_t j=0; j< links.toArray()->size(); j++){
+                cbor link = links.toArray()->at(j);
 
 
-                    String href = link->getMapValue("href")->toString();
-                    String rt = link->getMapValue("rt")->toString();
-                    String iff = link->getMapValue("if")->toString();
+                String href = link.getMapValue("href").toString();
+                String rt = link.getMapValue("rt").toString();
+                String iff = link.getMapValue("if").toString();
 
-                    dev->getResources()->push_back(new OICDeviceResource(href, iff, rt, dev, m_client));
-                }
+                dev->getResources()->push_back(new OICDeviceResource(href, iff, rt, dev, m_client));
+            }
+
                 m_variablesStorage.insert(di.c_str(), new QVariantMap());
                 Device* d = new Device(dev, this);
                 connect(d, SIGNAL(variablesChanged(QString,QVariantMap)), this, SLOT(onValueChanged(QString,QVariantMap)));
                 m_clientList.append(d);
-            }
-            emit devicesChanged();
         }
+        emit devicesChanged();
     });
 }
-
+QScriptValue logger( QScriptContext * ctx, QScriptEngine * eng ) {
+    return QScriptValue();
+}
 void SmartHomeServer::onValueChanged(QString resource, QVariantMap value){
     Device* d = (Device*)sender();
 
@@ -213,8 +177,9 @@ void SmartHomeServer::onValueChanged(QString resource, QVariantMap value){
     QVariantMap eventInfo;
 
     QScriptValue event = engine.newObject();
-    event.setProperty("source",engine.toScriptValue(d));
-    event.setProperty("data", engine.toScriptValue(eventInfo));
+    event.setProperty("source",d->getID());
+    event.setProperty("resource", resource);
+    event.setProperty("data", engine.toScriptValue(value));
 
     engine.globalObject().setProperty("event", event);
     engine.globalObject().setProperty("server", engine.newQObject(this));
@@ -231,6 +196,7 @@ void SmartHomeServer::onValueChanged(QString resource, QVariantMap value){
     engine.globalObject().setProperty("time", time);
 
     QStringList scripts  = getScripts(d->getID());
+    qDebug() << "Found " << scripts.size() << "scripts";
     foreach(QString script, scripts)
     {
         QScriptValue error = engine.evaluate(QUrl::fromPercentEncoding(script.toLatin1()));
