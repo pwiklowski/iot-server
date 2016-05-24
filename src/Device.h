@@ -7,7 +7,7 @@
 #include "cbor.h"
 #include "OICDevice.h"
 #include "OICDeviceResource.h"
-#include "QVariant"
+
 
 class SmartHomeServer;
 class Device;
@@ -33,19 +33,20 @@ public slots:
     QString getResourceType(){return QString(m_resource->getResourceType().c_str());}
     QString getInterface(){return QString(m_resource->getInterface().c_str());}
     QString getHref(){return QString(m_resource->getHref().c_str());}
-    QString getValue() {return m_value;}
+    QString getValue();
 
-    void post(QString value);
+    void postJson(QString value);
+    void post(QVariantMap value);
     void get();
     void observe();
     void unobserve();
 private:
-    void dump(cbor* res);
     QVariantMap toQMap(cbor* map);
+    QString dump(cbor* res);
     void convertToCborMap(QString str, cbor* map);
     OICDeviceResource* m_resource;
     OICDevice* m_device;
-    QString m_value;
+    cbor m_value;
 };
 
 class Device : public QObject
@@ -64,6 +65,8 @@ public:
     QVariantList getVariables();
 
     QList<DeviceVariable*>* getVariablesList() {return &m_variables;}
+
+    DeviceVariable* getVariable(QString resource);
 
     QString getAddress() { return QString(m_device->getAddress().c_str());}
 

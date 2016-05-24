@@ -86,36 +86,6 @@ void DjangoInterface::parseMessages(quint8 type, QByteArray payload, QTcpSocket*
             socket->flush();
             break;
         }
-        case DJANGO_GET_DEVICE_DESCRIPTION:
-        {
-            QJsonDocument d = QJsonDocument::fromJson(payload);
-            QJsonObject request = d.object();
-            QString id = request["client_id"].toString();
-
-            qDebug() << "DJANGO_GET_DEVICE_DESCRIPTION" << id;
-            Device* client = m_controller->getClient(id);
-
-
-            QString json;
-
-            if (client !=0)
-            {
-                //json = client->getDescription();
-            }
-
-            QByteArray data;
-            QDataStream stream(&data, QIODevice::ReadWrite);
-
-            stream << static_cast<quint8>(DJANGO_DEVICE_DESCRIPTION);
-            stream << static_cast<quint16>(json.size());
-
-            for(int i=0; i< json.size();i++)
-                stream << static_cast<quint8>(json.at(i).toLatin1());
-
-            socket->write(data);
-            socket->flush();
-            break;
-        }
         case DJANGO_GET_VALUES_LIST:
         {
             QJsonDocument d = QJsonDocument::fromJson(payload);
