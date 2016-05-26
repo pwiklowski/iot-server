@@ -26,7 +26,7 @@ public:
 
 
 signals:
-    void valueChanged(QString path, QVariantMap val);
+    void valueChanged(QString id, QString path, QVariantMap val);
 
 
 public slots:
@@ -71,7 +71,7 @@ public:
     QString getAddress() { return QString(m_device->getAddress().c_str());}
 
 signals:
-    void variablesChanged(QString path, QVariantMap val);
+    void variablesChanged(QString id, QString path, QVariantMap val);
     void setVariableValue(QString url, qint32 value);
 
 
