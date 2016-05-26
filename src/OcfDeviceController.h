@@ -19,8 +19,8 @@ public:
     OICClient* getClient(){return m_client;}
     void setSocketFd(int s) { m_socketFd = s;}
 signals:
-    void deviceAdded(Device* d);
-    void deviceRemoved(Device* d);
+    void deviceAdded(IotDevice* d);
+    void deviceRemoved(IotDevice* d);
 public slots:
     void findDevices();
     void ping();

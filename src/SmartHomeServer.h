@@ -29,7 +29,7 @@ signals:
 public slots:
 
 
-    QList<Device*> getClientList();
+    QList<IotDevice *> getClientList();
     void iotEventReceived(QString source,  QByteArray eventData);
     QVariant getValue(QString id, QString resource);
     bool setValue(QString id, QString resource, QVariantMap value);
@@ -39,17 +39,17 @@ public slots:
     QVariantMap* getVariablesStorage(QString client_id) {return m_variablesStorage.value(client_id);}
 
 
-    Device* getClient(QString id);
+    IotDevice *getClient(QString id);
 
     void saveGlobalObject(QString key, QScriptValue obj);
     QScriptValue getGlobalObject(QString key);
 
     void onValueChanged(QString id, QString resource, QVariantMap value);
 
-    void deviceAdded(Device* d);
-    void deviceRemoved(Device* d);
+    void deviceAdded(IotDevice* d);
+    void deviceRemoved(IotDevice* d);
 private:
-    QList<Device*>  m_clientList;
+    QList<IotDevice*>  m_clientList;
     QMap<QString, quint8> m_ignoreMap;
     QMap<QString, QVariantMap> m_lastEventMap;
     QMap<QString, QVariantMap> m_sensorsMap;
