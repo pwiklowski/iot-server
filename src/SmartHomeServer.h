@@ -4,6 +4,8 @@
 #include <QObject>
 #include "QTimer"
 #include "QTcpServer"
+#include <qbluetoothservicediscoveryagent.h>
+#include "BleScanner.h"
 #include "IotEventSetting.h"
 #include "QtScript/QScriptEngine"
 #include "QMap"
@@ -80,6 +82,7 @@ private:
     QSqlDatabase m_db;
     QTcpServer m_server;
     QList<Device*>  m_clientList;
+    BleScanner* mBleScanner;
     QList<IotEventSetting*> mSettingsList;
 };
 
