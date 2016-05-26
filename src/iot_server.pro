@@ -4,8 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += core network script sql
-QT += serialport
+QT       += core network bluetooth script sql
+QT += serialport bluetooth
 QT       -= gui
 CONFIG += c++11
 
@@ -26,6 +26,7 @@ INCLUDEPATH += ../../std
 
 SOURCES += main.cpp \
     SmartHomeServer.cpp \
+    BleScanner.cpp \
     IotEventSetting.cpp \
     IotEvent.cpp \
     DjangoInterface.cpp \
@@ -34,6 +35,7 @@ SOURCES += main.cpp \
 
 HEADERS += \
     SmartHomeServer.h \
+    BleScanner.h \
     IotEventSetting.h \
     IotEvent.h \
     DjangoInterface.h \
