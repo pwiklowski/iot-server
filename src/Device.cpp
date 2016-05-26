@@ -6,9 +6,13 @@
 #include "QDateTime"
 
 Device::Device(OICDevice *dev, QObject* parent) :
-    QObject(0)
+    IotDevice(0)
 {
     m_device = dev;
+    m_type = IOT_DEVICE_TYPE_OCF;
+    m_id =  m_device->getId().c_str();
+    m_name = m_device->getName().c_str();
+
     for(size_t i=0; i<dev->getResources()->size(); i++)
     {
         DeviceVariable* v = new DeviceVariable(m_device->getResources()->at(i), dev);
@@ -20,66 +24,13 @@ Device::Device(OICDevice *dev, QObject* parent) :
     }
 }
 
-QVariantList Device::getVariables()
-{
-    QVariantList list;
-    for(int i=0; i<m_variables.length();i++)
-        list.append(QVariant::fromValue(m_variables.at(i)));
-
-    return list;
-}
-
-DeviceVariable* Device::getVariable(QString resource){
-    for(int i=0; i<m_variables.length();i++){
-        if(m_variables.at(i)->getHref() == resource) return m_variables.at(i);
-    }
-
-    return 0;
-}
 
 DeviceVariable::DeviceVariable(OICDeviceResource *res, OICDevice *dev):
-    QObject(0)
+    IotDeviceVariable(0)
 {
     m_device = dev;
     m_resource = res;
-}
-
-void DeviceVariable::convertToCborMap(QString str, cbor* map){
-    if (str.isEmpty()) return;
-    QStringList t = str.split("\n", QString::SkipEmptyParts);
-    for(QString s: t){
-        QStringList val = s.split(":", QString::SkipEmptyParts);
-        QString v = val.at(1).trimmed();
-        QString key = val.at(0).trimmed();
-        bool ok;
-        int integer = v.toInt(&ok);
-
-        if (ok){
-            map->append(key.toLatin1().data(), integer);
-            qDebug() << key << integer;
-        } else{
-            qDebug() << key << v;
-            map->append(key.toLatin1().data(), v.toLatin1().data());
-        }
-
-    }
-}
-void DeviceVariable::postJson(QString value){
-    qDebug() << "post" << m_resource->getHref().c_str() << value;
-
-    cbor m(CBOR_TYPE_MAP);
-
-    convertToCborMap(value, &m);
-    m_value = m;
-
-    m_resource->post(&m_value, [&] (COAPPacket* response){
-        if (response == 0){
-            qDebug() << "setting value failed. timeout";
-        }else{
-            qDebug() << "value set";
-        }
-    });
-
+    m_resourceURI = m_resource->getHref().c_str();
 }
 
 QVariantMap DeviceVariable::toQMap(cbor* map){
@@ -98,10 +49,8 @@ QVariantMap DeviceVariable::toQMap(cbor* map){
     }
     return m;
 }
-
-void DeviceVariable::post(QVariantMap value){
-    qDebug() << "postJson" << m_resource->getHref().c_str() << value;
-
+void DeviceVariable::set(QVariantMap value){
+    qDebug() << "post" << m_resource->getHref().c_str() << value;
 
     foreach (QString k, value.keys()){
         m_value.toMap()->insert(k.toLatin1().data(), value.value(k).toInt());
@@ -115,44 +64,7 @@ void DeviceVariable::post(QVariantMap value){
         }
         qDebug() << "value set";
     });
-
 }
-void DeviceVariable::get(){
-    qDebug() << QDateTime::currentMSecsSinceEpoch() << "DeviceVariable::get" << getResourceType() << getHref();
-
-    m_resource->get([&] (COAPPacket* response){
-        if (response == 0){
-            qDebug() << "get timeout";
-            return;
-        }
-
-        cbor::parse(&m_value, response->getPayload());
-        //emit valueChanged();
-        qDebug() << QDateTime::currentMSecsSinceEpoch() << "DeviceVariable::get" << getResourceType() << getHref();
-    });
-}
-
-QString DeviceVariable::dump(cbor* response){
-    QString res;
-    Map<cbor, cbor>* m = response->toMap();
-
-    if (m!=0){
-        for (cbor key: *m){
-            cbor value = m->get(key);
-            res += new QString(key.toString().c_str());
-            res += ": ";
-
-            if (value.is_int()){
-                res += QString::number(value.toInt());
-            }else if(value.is_string()){
-                res += new QString(value.toString().c_str());
-            }
-            res +="\n";
-        }
-    }
-    return res;
-}
-
 
 void DeviceVariable::observe(){
     m_resource->observe([&] (COAPPacket* response){
@@ -169,9 +81,4 @@ void DeviceVariable::unobserve(){
     m_resource->unobserve([&] (COAPPacket* response){
 
     });
-}
-
-
-QString DeviceVariable::getValue(){
-    return dump(&m_value);
 }

@@ -26,24 +26,24 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
     temp = engine.newObject();
 }
 
-void SmartHomeServer::deviceAdded(Device* d){
+void SmartHomeServer::deviceAdded(IotDevice* d){
    m_variablesStorage.insert(d->getID(), new QVariantMap());
    m_clientList.append(d);
 }
 
-void SmartHomeServer::deviceRemoved(Device* d){
+void SmartHomeServer::deviceRemoved(IotDevice *d){
     m_variablesStorage.remove(d->getID());
     m_clientList.removeOne(d);
 
 }
 
-QList<Device *> SmartHomeServer::getClientList()
+QList<IotDevice *> SmartHomeServer::getClientList()
 {
     return m_clientList;
 }
-Device *SmartHomeServer::getClient(QString id)
+IotDevice *SmartHomeServer::getClient(QString id)
 {
-    foreach(Device* client, m_clientList)
+    foreach(IotDevice* client, m_clientList)
     {
         if (client->getID() == id)
         {
@@ -63,18 +63,16 @@ QVariant SmartHomeServer::getValue(QString id, QString resource){
 
 bool SmartHomeServer::setValue(QString id, QString resource, QVariantMap value)
 {
-    Device* client = getClient(id);
+    IotDevice* client = getClient(id);
 
     if (client!=0)
     {
-        DeviceVariable* variable = client->getVariable(resource);
+        IotDeviceVariable* variable = client->getVariable(resource);
 
         if (variable != 0){
-            variable->post(value);
+            variable->set(value);
 
         }
-
-
         return true;
     }
     return false;
@@ -111,7 +109,7 @@ QScriptValue logger( QScriptContext * ctx, QScriptEngine * eng ) {
     return QScriptValue();
 }
 void SmartHomeServer::onValueChanged(QString id, QString resource, QVariantMap value){
-    Device* d = getClient(id);
+    IotDevice* d = getClient(id);
 
     if (d == 0)
         return;

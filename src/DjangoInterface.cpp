@@ -57,14 +57,14 @@ void DjangoInterface::parseMessages(quint8 type, QByteArray payload, QTcpSocket*
     switch (type) {
         case DJANGO_GET_DEVICE_LIST:
         {
-            QList<Device*> devices = m_controller->getClientList();
+            QList<IotDevice*> devices = m_controller->getClientList();
             QJsonObject root;
             QString json;
             QJsonArray devs;
 
             for(int i=0; i<devices.length();i++)
             {
-                Device* device = devices.at(i);
+                IotDevice* device = devices.at(i);
 
                 QJsonObject dev;
                 dev["name"] = device->getName();
