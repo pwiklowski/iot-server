@@ -24,6 +24,7 @@ INCLUDEPATH += ../../libcoap
 
 INCLUDEPATH += ../../std
 
+
 SOURCES += main.cpp \
     SmartHomeServer.cpp \
     BleScanner.cpp \
@@ -31,7 +32,9 @@ SOURCES += main.cpp \
     IotEvent.cpp \
     DjangoInterface.cpp \
     Settings.cpp \
-    Device.cpp
+    Device.cpp \
+    BleDeviceControler.cpp \
+    OcfDeviceController.cpp
 
 HEADERS += \
     SmartHomeServer.h \
@@ -40,4 +43,6 @@ HEADERS += \
     IotEvent.h \
     DjangoInterface.h \
     Settings.h \
-    Device.h
+    Device.h \
+    BleDeviceControler.h \
+    OcfDeviceController.h

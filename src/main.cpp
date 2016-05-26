@@ -5,6 +5,9 @@
 #include <QCoreApplication>
 #include "SmartHomeServer.h"
 #include "DjangoInterface.h"
+#include "BleDeviceControler.h"
+#include "OcfDeviceController.h"
+
 #include <iostream>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -12,6 +15,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
 
 #define LOG_FILE "/usr/local/wiklosoft/log"
 #define RUNNING_DIR "/usr/local/wiklosoft/"
@@ -102,9 +106,12 @@ int main(int argc, char *argv[])
     //qInstallMessageHandler(myMessageHandler);
     //init_daemon();
 
-
     QCoreApplication a(argc, argv);
+    //BleDeviceControler ble;
     SmartHomeServer server;
+    OcfDeviceController ocf(&server);
+
+
 
     DjangoInterface dj(&server);
 

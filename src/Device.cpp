@@ -15,7 +15,7 @@ Device::Device(OICDevice *dev, QObject* parent) :
         v->moveToThread(parent->thread());
         v->observe();
 
-        connect(v, SIGNAL(valueChanged(QString,QVariantMap)), this, SIGNAL(variablesChanged(QString, QVariantMap)));
+        connect(v, SIGNAL(valueChanged(QString,QString,QVariantMap)), this, SIGNAL(variablesChanged(QString, QString, QVariantMap)));
         m_variables.append(v);
     }
 }
@@ -162,7 +162,7 @@ void DeviceVariable::observe(){
         }
         cbor::parse(&m_value, response->getPayload());
         qDebug() << "Value updated" << m_resource->getHref().c_str();
-        emit valueChanged(m_resource->getHref().c_str(), toQMap(&m_value));
+        emit valueChanged(m_device->getId().c_str(), m_resource->getHref().c_str(), toQMap(&m_value));
     });
 }
 void DeviceVariable::unobserve(){

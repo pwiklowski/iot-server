@@ -2,6 +2,7 @@
 #include "QJsonDocument"
 #include "QJsonObject"
 #include "QJsonArray"
+#include "QDataStream"
 
 DjangoInterface::DjangoInterface(SmartHomeServer* controller, QObject *parent) :
     QObject(parent),
@@ -52,6 +53,7 @@ void DjangoInterface::readData()
 }
 void DjangoInterface::parseMessages(quint8 type, QByteArray payload, QTcpSocket* socket)
 {
+    //qDebug() << "parseMessages" << type;
     switch (type) {
         case DJANGO_GET_DEVICE_LIST:
         {
@@ -140,7 +142,7 @@ void DjangoInterface::parseMessages(quint8 type, QByteArray payload, QTcpSocket*
 void DjangoInterface::removeClient()
 {
     //qDebug() << "DjangoInterface::removeClient";
-    QTcpSocket* client = (QTcpSocket*) sender();
-    delete client;
-    client =  0;
+    //QTcpSocket* client = (QTcpSocket*) sender();
+    //delete client;
+    //client =  0;
 }
