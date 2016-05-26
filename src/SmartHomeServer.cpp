@@ -6,6 +6,8 @@
 #include "QDateTime"
 #include <poll.h>
 #include "QTimer"
+#include <linux/ip.h>
+#include <netinet/igmp.h>
 
 SmartHomeServer::SmartHomeServer(QObject *parent) :
     QObject(parent)
@@ -33,14 +35,21 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
     m_client->start("","");
 
     pthread_create(&m_thread, NULL, &SmartHomeServer::run, this);
+    pthread_create(&m_deviceThread, NULL, &SmartHomeServer::waitForDevices, this);
     findDevices();
 
-    QTimer* t = new QTimer(this);
-    t->setInterval(5000);
-    t->setSingleShot(false);
 
+    m_timer.setInterval(5000);
+    m_timer.setSingleShot(false);
+    connect(&m_timer, SIGNAL(timeout()), this, SLOT(ping()));
+    m_timer.start();
 
-    qDebug() << getScripts("0685B960-736F-46F7-BEC0-9E6CBD61ADC1");
+    m_deviceSearchTimer.setInterval(10*1000);
+
+    m_deviceSearchTimer.setSingleShot(false);
+    connect(&m_deviceSearchTimer, SIGNAL(timeout()), this, SLOT(findDevices()));
+    m_deviceSearchTimer.start();
+
 }
 
 
@@ -66,9 +75,53 @@ QScriptValue SmartHomeServer::getGlobalObject(QString key)
     return m_cloudScriptStorage.value(key);
 }
 
+void* SmartHomeServer::waitForDevices(void* param){
+    SmartHomeServer* d = (SmartHomeServer*) param;
 
+    const int on = 1;
+    int fd = socket(AF_INET,SOCK_RAW,IPPROTO_IGMP);
+    if (fd <0){
+        qDebug() << "error opening IGMP socket";
+        return 0;
+    }
 
+    uint8_t buffer[1024];
 
+    while(1){
+        int rc = recv(fd,buffer,sizeof(buffer),0);
+
+        if (rc>0){
+            iphdr *iph = (iphdr*)buffer;
+            uint8_t ip_hdr_len = iph->ihl * 4;
+            igmp* igmpp = (igmp*) (buffer + ip_hdr_len);
+
+            if (igmpp->igmp_type == IGMP_V1_MEMBERSHIP_REPORT ||
+                igmpp->igmp_type == IGMP_V2_MEMBERSHIP_REPORT ||
+                igmpp->igmp_type == IGMP_V2_LEAVE_GROUP){
+
+                if (igmpp->igmp_group.s_addr == inet_addr("224.0.1.187")){
+                    d->findDevices();
+                }
+            }
+        }
+    }
+}
+
+void SmartHomeServer::ping(){
+
+    for (Device* d: m_clientList){
+        qDebug() << "ping" << d->getAddress();
+        m_client->ping(d->getAddress().toLatin1().data(), [=](COAPPacket* p){
+            if (p == 0){
+                qDebug() << "Remove" << d->getName() << d->getID();
+                m_clientList.removeOne(d);
+                emit devicesChanged();
+            }else{
+                qDebug() << "pong";
+            }
+        });
+    }
+}
 
 
 void SmartHomeServer::iotEventReceived(QString source,  QByteArray eventData)
@@ -136,10 +189,10 @@ void SmartHomeServer::findDevices()
             String name = device.getMapValue("n").toString();
             String di= device.getMapValue("di").toString();
 
-            qDebug() << "new device"<<  name.c_str() << di.c_str();
 
             if (isDeviceOnList(QString(di.c_str()))) continue;
 
+            qDebug() << "new device"<<  name.c_str() << di.c_str();
             cbor links = device.getMapValue("links");
             OICDevice* dev = new OICDevice(di, name, packet->getAddress(), m_client);
 
@@ -154,10 +207,10 @@ void SmartHomeServer::findDevices()
                 dev->getResources()->push_back(new OICDeviceResource(href, iff, rt, dev, m_client));
             }
 
-                m_variablesStorage.insert(di.c_str(), new QVariantMap());
-                Device* d = new Device(dev, this);
-                connect(d, SIGNAL(variablesChanged(QString,QVariantMap)), this, SLOT(onValueChanged(QString,QVariantMap)));
-                m_clientList.append(d);
+            m_variablesStorage.insert(di.c_str(), new QVariantMap());
+            Device* d = new Device(dev, this);
+            connect(d, SIGNAL(variablesChanged(QString,QVariantMap)), this, SLOT(onValueChanged(QString,QVariantMap)));
+            m_clientList.append(d);
         }
         emit devicesChanged();
     });
@@ -196,7 +249,6 @@ void SmartHomeServer::onValueChanged(QString resource, QVariantMap value){
     engine.globalObject().setProperty("time", time);
 
     QStringList scripts  = getScripts(d->getID());
-    qDebug() << "Found " << scripts.size() << "scripts";
     foreach(QString script, scripts)
     {
         QScriptValue error = engine.evaluate(QUrl::fromPercentEncoding(script.toLatin1()));
@@ -279,7 +331,6 @@ void SmartHomeServer::send_packet(COAPPacket* packet){
     client.sin_port = htons(port);
     client.sin_addr.s_addr = inet_addr(ip.c_str());
 
-    qDebug() << "Send packet mid=" << packet->getMessageId() << "destination=" <<destination.c_str();
     send_packet(client, packet);
 }
 void SmartHomeServer::send_packet(sockaddr_in destination, COAPPacket* packet){

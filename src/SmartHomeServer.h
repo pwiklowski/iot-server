@@ -2,6 +2,7 @@
 #define SMARTHOMESERVER_H
 
 #include <QObject>
+#include "QTimer"
 #include "QTcpServer"
 #include "IotEventSetting.h"
 #include "QtScript/QScriptEngine"
@@ -23,11 +24,15 @@ class SmartHomeServer : public QObject
 public:
     explicit SmartHomeServer(QObject *parent = 0);
     static void* run(void* param);
+
+      static void* waitForDevices(void* param);
     OICClient* getClient(){return m_client;}
     void setSocketFd(int s) { m_socketFd = s;}
 signals:
     void devicesChanged();
 public slots:
+    void ping();
+
     QList<Device*> getClientList();
     void iotEventReceived(QString source,  QByteArray eventData);
     QVariant getValue(QString id, QString resource){return getVariablesStorage(id)->value(resource);}
@@ -46,6 +51,8 @@ public slots:
 
     void onValueChanged(QString resource, QVariantMap value);
 private:
+    QTimer m_timer;
+    QTimer m_deviceSearchTimer;
     String convertAddress(sockaddr_in a);
     bool isDeviceOnList(QString id);
 
@@ -55,6 +62,7 @@ private:
     OICClient* m_client;
     QObject* m_parent;
     pthread_t m_thread;
+    pthread_t m_deviceThread;
     int m_socketFd;
 
     QMap<QString, quint8> m_ignoreMap;
