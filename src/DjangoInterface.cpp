@@ -96,30 +96,24 @@ void DjangoInterface::parseMessages(quint8 type, QByteArray payload, QTcpSocket*
 
             QString json;
 
+            IotDevice* dev = m_controller->getClient(id);
+
             QVariantMap* storedVariables = m_controller->getVariablesStorage(id);
 
-
-
             QJsonArray vars;
-
-            if (storedVariables)
+            if (dev)
             {
-                foreach(QString key, storedVariables->keys())
+                for(int i=0; i<dev->getVariables()->size(); i++)
                 {
-                    QVariantMap res = storedVariables->value(key).toMap();
+                    IotDeviceVariable* var = dev->getVariables()->at(i);
+                    QVariantMap res = storedVariables->value(var->getResource()).toMap();
 
                     QJsonObject v;
-                    v["name"] = key;
+                    v["name"] = var->getResource();
                     v["values"]= QJsonObject::fromVariantMap(res);
                     vars.append(v);
-
-
-
-
-
                 }
             }
-
 
             json = QJsonDocument(vars).toJson();
             QByteArray data;
