@@ -34,7 +34,11 @@ SOURCES += main.cpp \
     Settings.cpp \
     Device.cpp \
     BleDeviceControler.cpp \
-    OcfDeviceController.cpp
+    OcfDeviceController.cpp \
+    IPv4OcfDeviceController.cpp \
+    Rfm69OcfDeviceController.cpp \
+    rfm69.cpp \
+    rfm69hal.c
 
 HEADERS += \
     SmartHomeServer.h \
@@ -45,4 +49,8 @@ HEADERS += \
     Settings.h \
     Device.h \
     BleDeviceControler.h \
-    OcfDeviceController.h
+    OcfDeviceController.h \
+    IPv4OcfDeviceController.h \
+    Rfm69OcfDeviceController.h \
+    rfm69.hpp \
+    rfm69hal.h
