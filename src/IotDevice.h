@@ -35,6 +35,7 @@ public:
 
 
     IotDeviceVariable* getVariable(QString resource);
+    QList<IotDeviceVariable*>* getVariables() {return &m_variables;}
 
 signals:
 
