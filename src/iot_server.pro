@@ -35,6 +35,7 @@ SOURCES += main.cpp \
     Device.cpp \
     BleDeviceControler.cpp \
     OcfDeviceController.cpp \
+    IotDevice.cpp \
     IPv4OcfDeviceController.cpp \
     Rfm69OcfDeviceController.cpp \
     rfm69.cpp \
@@ -50,6 +51,7 @@ HEADERS += \
     Device.h \
     BleDeviceControler.h \
     OcfDeviceController.h \
+    IotDevice.h \
     IPv4OcfDeviceController.h \
     Rfm69OcfDeviceController.h \
     rfm69.hpp \
