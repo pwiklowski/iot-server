@@ -5,7 +5,6 @@
 #include <QCoreApplication>
 #include "SmartHomeServer.h"
 #include "DjangoInterface.h"
-#include "BleDeviceControler.h"
 #include "IPv4OcfDeviceController.h"
 
 #include <iostream>
@@ -107,7 +106,6 @@ int main(int argc, char *argv[])
     //init_daemon();
 
     QCoreApplication a(argc, argv);
-    //BleDeviceControler ble;
     SmartHomeServer server;
     IPv4OcfDeviceController ocf(&server);
     ocf.start();
