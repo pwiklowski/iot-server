@@ -4,8 +4,8 @@
 #
 #-------------------------------------------------
 
-QT       += core network bluetooth script sql
-QT += serialport bluetooth
+QT       += core network script sql
+QT       += serialport
 QT       -= gui
 CONFIG += c++11
 
