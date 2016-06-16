@@ -29,7 +29,7 @@
 /** @addtogroup RFM69
  * @{
  */
-#define RFM69_MAX_PAYLOAD		64 ///< Maximum bytes payload
+#define RFM69_MAX_PAYLOAD		63 ///< Maximum bytes payload
 
 /**
  * Valid RFM69 operation modes.
@@ -73,7 +73,6 @@ public:
   int setPowerDBm(int8_t dBm);
   void setHighPowerSettings(bool enable);
   void setCustomConfig(const uint8_t config[][2], unsigned int length);
-  int send(const void* data, unsigned int dataLength);
   int receive(uint8_t* data, unsigned int dataLength);
   void sleep();
   int getRSSI()
@@ -112,10 +111,26 @@ public:
   void dumpRegisters();
 
   void setPASettings(uint8_t forcePA = 0);
-  
+
+   int read(uint8_t* data, uint16_t len);
+
   bool setAESEncryption(const void* aesKey, unsigned int keyLength);
-  int _receive(uint8_t* data, unsigned int dataLength);
+  int _receive(uint8_t* data, unsigned int dataLength, uint8_t* sequence);
+
   void waitForModeReady();
+
+  bool isFifoNotEmpty();
+  bool isPacketReady();
+  bool isFifoThreshold();
+
+  int readPacket(uint8_t* data, unsigned int dataLength);
+  int sendPacket(uint8_t* data, uint16_t len);
+
+  int receivePacket(uint8_t* buf, uint16_t maxSize);
+
+  int send(uint8_t* data, unsigned int dataLength, uint8_t sequence);
+  int sendWithAck(uint8_t* data, uint16_t len, uint8_t sequence);
+
 private:
   uint8_t readRegister(uint8_t reg);
 
