@@ -13,6 +13,7 @@ TARGET = SmartHomeServer
 CONFIG   += console
 CONFIG   -= app_bundle
 
+
 TEMPLATE = app
 
 
@@ -33,7 +34,6 @@ SOURCES += main.cpp \
     DjangoInterface.cpp \
     Settings.cpp \
     Device.cpp \
-    BleDeviceControler.cpp \
     OcfDeviceController.cpp \
     IotDevice.cpp \
     IPv4OcfDeviceController.cpp \
@@ -49,7 +49,6 @@ HEADERS += \
     DjangoInterface.h \
     Settings.h \
     Device.h \
-    BleDeviceControler.h \
     OcfDeviceController.h \
     IotDevice.h \
     IPv4OcfDeviceController.h \
