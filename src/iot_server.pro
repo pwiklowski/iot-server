@@ -7,6 +7,7 @@
 QT       += core network script sql
 QT       += serialport
 QT       -= gui
+
 CONFIG += c++11
 
 TARGET = SmartHomeServer
@@ -15,6 +16,14 @@ CONFIG   -= app_bundle
 
 
 TEMPLATE = app
+
+
+
+
+#Uncomment for RaspberryPI
+#LIBS += -lwiringPi
+#LIBS += -L../../liboic -loic
+
 
 
 LIBS += -L../../liboic-build -loic
