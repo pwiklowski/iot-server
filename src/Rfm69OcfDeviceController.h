@@ -2,6 +2,7 @@
 #define RFM69OCFDEVICECONTROLLER_H
 
 #include "OcfDeviceController.h"
+#include "rfm69.hpp"
 
 
 class Rfm69OcfDeviceController : public OcfDeviceController
@@ -15,6 +16,9 @@ private:
     uint16_t readPacket(uint8_t* buf, uint16_t maxSize, String* address) override;
     bool init() override;
     void send_packet(COAPPacket* packet) override;
+
+    RFM69* rfm69;
+
 };
 
 #endif // RFM69OCFDEVICECONTROLLER_H
