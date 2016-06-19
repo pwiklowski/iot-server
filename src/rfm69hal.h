@@ -4,7 +4,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#define RPI_
+#define RPI
 
 #ifdef RPI
 #include <wiringPiSPI.h>

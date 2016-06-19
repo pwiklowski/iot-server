@@ -30,6 +30,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <QDebug>
+#include <unistd.h>
 
 #define TIMEOUT_MODE_READY    1000000 ///< Maximum amount of time until mode switch [ms]
 #define TIMEOUT_PACKET_SENT   100 ///< Maximum amount of time until packet must be sent [ms]
@@ -44,25 +46,33 @@ static const uint8_t rfm69_base_config[][2] =
 {
     {0x01, 0x04}, // RegOpMode: Standby Mode
     {0x02, 0x00}, // RegDataModul: Packet mode, FSK, no shaping
-    {0x03, 0x0C}, // RegBitrateMsb: 10 kbps
+    {0x03, 0x00}, // RegBitrateMsb: 10 kbps
     {0x04, 0x80}, // RegBitrateLsb
-    {0x05, 0x01}, // RegFdevMsb: 20 kHz
-    {0x06, 0x48}, // RegFdevLsb
+
+    {0x05, 0x10}, // RegFdevMsb: 20 kHz
+	{0x06, 0x00}, // RegFdevLsb
+
+
     {0x07, 0xD9}, // RegFrfMsb: 868,15 MHz
     {0x08, 0x09}, // RegFrfMid
     {0x09, 0x9A}, // RegFrfLsb
     {0x18, 0x88}, // RegLNA: 200 Ohm impedance, gain set by AGC loop
-    {0x19, 0x4C}, // RegRxBw: 25 kHz
+
+    {0x19, 0xe8}, // RegRxBw: 25 kHz
+	{0x1a, 0xe0},
+
     {0x2C, 0x00}, // RegPreambleMsb: 3 bytes preamble
     {0x2D, 0x03}, // RegPreambleLsb
     {0x2E, 0x88}, // RegSyncConfig: Enable sync word, 2 bytes sync word
     {0x2F, 0x41}, // RegSyncValue1: 0x4148
     {0x30, 0x48}, // RegSyncValue2
     {0x37, 0xD0}, // RegPacketConfig1: Variable length, CRC on, whitening
-    {0x38, 0x40}, // RegPayloadLength: 64 bytes max payload
+    {0x38, RFM69_MAX_PAYLOAD}, // RegPayloadLength: 64 bytes max payload
     {0x3C, 0x8F}, // RegFifoThresh: TxStart on FifoNotEmpty, 15 bytes FifoLevel
     {0x58, 0x1B}, // RegTestLna: Normal sensitivity mode
     {0x6F, 0x30}, // RegTestDagc: Improved margin, use if AfcLowBetaOn=0 (default)
+
+
 };
 
 // Clock constants. DO NOT CHANGE THESE!
@@ -125,6 +135,7 @@ void RFM69::reset()
  */
 bool RFM69::init()
 {
+  rfm69hal_init();
   // set base configuration
   setCustomConfig(rfm69_base_config, sizeof(rfm69_base_config) / 2);
 
@@ -401,7 +412,9 @@ void RFM69::setCustomConfig(const uint8_t config[][2], unsigned int length)
 
 	  uint8_t val = readRegister(config[i][0]);
 
-	  if (set_val != val) return;
+	  if (set_val != val){
+	      qDebug() << "Unable to write params";
+          }
 
 
 	}
@@ -447,7 +460,7 @@ int RFM69::receivePacket(uint8_t* buf, uint16_t maxSize){
 
     if (bytesReceived < 0) return 0;
 
-    //printf("header len=%d\n", bytesReceived);
+    qDebug() << "header len"<< bytesReceived;
     if (bytesReceived != sizeof(syncSentence)) return -1;
 
     if (ack != 0 ) return -1;
@@ -459,7 +472,7 @@ int RFM69::receivePacket(uint8_t* buf, uint16_t maxSize){
     send(0, 0, ack);
 
 
-    //printf("receivePacket plen=%d\n", bytesToReceive);
+    qDebug() << "receivePacket to receive"<< bytesToReceive;
 
     if (bytesToReceive > bytesReceived){
         while(bytesToReceive > 0){
@@ -487,7 +500,7 @@ int RFM69::receivePacket(uint8_t* buf, uint16_t maxSize){
 
 
 int RFM69::sendWithAck(uint8_t* data, uint16_t len, uint8_t sequence){
-    //printf("sendWithAck %d\n", len);
+    printf("sendWithAck %d %d\n", len, sequence);
     uint8_t buf[20];
     for (int i=0; i<10; i++)
     {
@@ -496,7 +509,7 @@ int RFM69::sendWithAck(uint8_t* data, uint16_t len, uint8_t sequence){
         for (int j=0; j<10; j++){
             if (isPacketReady()) break;
             printf("waiting for ack\n");
-            rfm69hal_delay_ms(1);
+            rfm69hal_delay_ms(5);
         }
         uint8_t ackSeq;
         int res = _receive(buf, 20, &ackSeq);
@@ -532,7 +545,7 @@ int RFM69::send(uint8_t* data, unsigned int dataLength, uint8_t sequence)
     waitForModeReady();
   }
 
-  clearFIFO();
+//  clearFIFO();
 
   /* Wait for a free channel, if CSMA/CA algorithm is enabled.
    * This takes around 1,4 ms to finish if channel is free */
@@ -577,20 +590,25 @@ int RFM69::send(uint8_t* data, unsigned int dataLength, uint8_t sequence)
   // transfer packet to FIFO
   chipSelect();
 
-
-  unsigned char p[RFM69_MAX_PAYLOAD + 1];
+  uint8_t p[RFM69_MAX_PAYLOAD + 3];
 
   p[0] = 0x00 | 0x80;
-
   p[1] = dataLength+1;
-
   p[2] = sequence;
 
-  for (unsigned int i = 0; i < dataLength; i++)
-    p[2+i] =((uint8_t*)data)[i];
+    for(int i=0; i<dataLength; i++){
+        p[3+i] = data[i];
+    }
+
+
+
+
+  rfm69hal_transfer(p,dataLength+ 3);
+
 
   chipUnselect();
   setMode(RFM69_MODE_TX);
+
   waitForPacketSent();
   setMode(RFM69_MODE_STANDBY);
   return dataLength;
@@ -709,25 +727,18 @@ int RFM69::_receive(uint8_t* data, unsigned int dataLength, uint8_t* sequence)
   // check for flag PayloadReady
   if (readRegister(0x28) & 0x04)
   {
-    // go to standby before reading data
     setMode(RFM69_MODE_STANDBY);
-
-    // get FIFO content
     unsigned int bytesRead = 0;
+    uint8_t bytesInChunk = readRegister(0) -1; //minus seq byte
+    *sequence = readRegister(0);
+qDebug() << "size" << bytesInChunk;
+qDebug() << "ack" << *sequence;
 
-    uint16_t bytesInChunk = readRegister(0x0)-1; //minus sequence byte
 
-    if (sequence != 0){
-       bytesInChunk -= 1;
 
-        *sequence = readRegister(0x0);
-    }
-
-    while ((readRegister(0x28) & 0x40) && (bytesRead < bytesInChunk))
-    {
-      data[bytesRead] = readRegister(0x00);
-      bytesRead++;
-    }
+for(int i=0; i<bytesInChunk; i++){
+	data[i] = readRegister(0);
+}
 
     if (true == _autoReadRSSI)
     {
@@ -735,7 +746,7 @@ int RFM69::_receive(uint8_t* data, unsigned int dataLength, uint8_t* sequence)
     }
 
     setMode(RFM69_MODE_RX);
-    return bytesRead;
+    return bytesInChunk;
   }
   else
     return -1;

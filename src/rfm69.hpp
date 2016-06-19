@@ -131,10 +131,10 @@ public:
   int send(uint8_t* data, unsigned int dataLength, uint8_t sequence);
   int sendWithAck(uint8_t* data, uint16_t len, uint8_t sequence);
 
-private:
   uint8_t readRegister(uint8_t reg);
 
   void writeRegister(uint8_t reg, uint8_t value);
+private:
 
   void chipSelect();
 
