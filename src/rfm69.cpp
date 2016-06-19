@@ -500,20 +500,23 @@ int RFM69::receivePacket(uint8_t* buf, uint16_t maxSize){
 
 
 int RFM69::sendWithAck(uint8_t* data, uint16_t len, uint8_t sequence){
-    printf("sendWithAck %d %d\n", len, sequence);
     uint8_t buf[20];
     for (int i=0; i<10; i++)
     {
+        printf("sendWithAck %d %d\n", len, sequence);
         send(data, len, sequence);
 
         for (int j=0; j<10; j++){
             if (isPacketReady()) break;
-            printf("waiting for ack\n");
-            rfm69hal_delay_ms(5);
+            printf("waiting for ack %d\n", sequence);
+            rfm69hal_delay_ms(10);
         }
         uint8_t ackSeq;
+        
+        printf("read ack\n");
         int res = _receive(buf, 20, &ackSeq);
-        if (res >= 0){
+        printf("read ack %d \n",res);
+        if (res == 0){
             printf("received ack =%d\n", ackSeq );
             return len;
         }else{
@@ -538,7 +541,7 @@ int RFM69::sendWithAck(uint8_t* data, uint16_t len, uint8_t sequence){
  */
 int RFM69::send(uint8_t* data, unsigned int dataLength, uint8_t sequence)
 {
-//printf_("send seq=%d\n", sequence);
+    qDebug() << "send seq" << sequence;
   if (RFM69_MODE_SLEEP != _mode)
   {
     setMode(RFM69_MODE_STANDBY);
@@ -600,11 +603,7 @@ int RFM69::send(uint8_t* data, unsigned int dataLength, uint8_t sequence)
         p[3+i] = data[i];
     }
 
-
-
-
   rfm69hal_transfer(p,dataLength+ 3);
-
 
   chipUnselect();
   setMode(RFM69_MODE_TX);
