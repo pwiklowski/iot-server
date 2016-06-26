@@ -6,6 +6,7 @@
 #include "SmartHomeServer.h"
 #include "DjangoInterface.h"
 #include "IPv4OcfDeviceController.h"
+#include "Rfm69OcfDeviceController.h"
 
 #include <iostream>
 #include <stdlib.h>
@@ -117,10 +118,11 @@ int main(int argc, char *argv[])
 
     QCoreApplication a(argc, argv);
     SmartHomeServer server;
-    IPv4OcfDeviceController ocf(&server);
-    ocf.start();
+    //IPv4OcfDeviceController ocf(&server);
+    //ocf.start();
 
-
+    Rfm69OcfDeviceController rfm(&server);
+    rfm.start();
 
     DjangoInterface dj(&server);
 

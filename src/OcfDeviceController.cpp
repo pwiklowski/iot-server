@@ -19,7 +19,7 @@ OcfDeviceController::OcfDeviceController(SmartHomeServer* parent) : QObject((QOb
     m_timer.setInterval(5000);
     m_timer.setSingleShot(false);
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(ping()));
-    //m_timer.start();
+    m_timer.start();
 
     m_deviceSearchTimer.setInterval(10*1000);
 
@@ -34,7 +34,6 @@ void OcfDeviceController::start(){
 }
 
 void OcfDeviceController::ping(){
-
     for (Device* d: m_clientList){
         qDebug() << "ping" << d->getAddress();
         m_client->ping(d->getAddress().toLatin1().data(), [=](COAPPacket* p){
@@ -121,7 +120,10 @@ void* OcfDeviceController::run(void* param){
         rc = d->readPacket(buffer, sizeof(buffer), &address);
         if (rc >0){
             COAPPacket* p = COAPPacket::parse(buffer, rc, address.c_str());
-            coap_server->handleMessage(p);
+            if (p != 0){
+                coap_server->handleMessage(p);
+                delete p;
+            }
         }
         coap_server->tick();
     }
