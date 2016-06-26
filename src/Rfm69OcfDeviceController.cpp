@@ -9,7 +9,7 @@ Rfm69OcfDeviceController::Rfm69OcfDeviceController(SmartHomeServer* s) :
     rfm69 = new Rfm69();
 }
 
-uint16_t Rfm69OcfDeviceController::readPacket(uint8_t* buf, uint16_t maxSize, String* address){
+int Rfm69OcfDeviceController::readPacket(uint8_t* buf, uint16_t maxSize, String* address){
     int bytesReceived = rfm69->receivePacket(buf, maxSize);
 
     *address = "rfm69";

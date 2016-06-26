@@ -22,7 +22,7 @@ public slots:
 
 protected:
     void send_packet(COAPPacket* packet) override ;
-    uint16_t readPacket(uint8_t* buf, uint16_t maxSize, String* address) override;
+    int readPacket(uint8_t* buf, uint16_t maxSize, String* address) override;
     bool init() override;
 
     String convertAddress(sockaddr_in a);
