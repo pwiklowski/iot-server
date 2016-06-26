@@ -109,7 +109,7 @@ bool IPv4OcfDeviceController::init(){
 }
 
 
-uint16_t IPv4OcfDeviceController::readPacket(uint8_t* buf, uint16_t maxSize, String* address){
+int IPv4OcfDeviceController::readPacket(uint8_t* buf, uint16_t maxSize, String* address){
     struct pollfd pfd;
     int res = sizeof(*buf);
 

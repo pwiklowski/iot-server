@@ -32,7 +32,7 @@ private:
     bool isDeviceOnList(QString id);
 
 
-    virtual uint16_t readPacket(uint8_t* buf, uint16_t maxSize, String* address) = 0;
+    virtual int readPacket(uint8_t* buf, uint16_t maxSize, String* address) = 0;
     virtual bool init() = 0;
     virtual void send_packet(COAPPacket* packet) = 0;
 
