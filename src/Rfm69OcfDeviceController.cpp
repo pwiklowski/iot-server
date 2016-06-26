@@ -6,7 +6,7 @@
 Rfm69OcfDeviceController::Rfm69OcfDeviceController(SmartHomeServer* s) :
     OcfDeviceController(s)
 {
-    rfm69 = new RFM69(false); // false = RFM69W, true = RFM69HW
+    rfm69 = new Rfm69();
 }
 
 uint16_t Rfm69OcfDeviceController::readPacket(uint8_t* buf, uint16_t maxSize, String* address){
@@ -18,7 +18,7 @@ uint16_t Rfm69OcfDeviceController::readPacket(uint8_t* buf, uint16_t maxSize, St
        qDebug() << "bytes recieved" <<bytesReceived;
     }
 	
-    return 0;
+    return bytesReceived;
 }
 
 bool Rfm69OcfDeviceController::init(){

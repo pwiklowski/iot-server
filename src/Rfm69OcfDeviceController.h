@@ -2,7 +2,7 @@
 #define RFM69OCFDEVICECONTROLLER_H
 
 #include "OcfDeviceController.h"
-#include "rfm69.hpp"
+#include "rfm69.h"
 
 
 class Rfm69OcfDeviceController : public OcfDeviceController
@@ -17,7 +17,7 @@ private:
     bool init() override;
     void send_packet(COAPPacket* packet) override;
 
-    RFM69* rfm69;
+    Rfm69* rfm69;
 
 };
 
