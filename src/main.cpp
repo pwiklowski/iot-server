@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 
 
 #define LOG_FILE "/usr/local/wiklosoft/log"
@@ -100,6 +101,15 @@ void myMessageHandler(QtMsgType type, const QMessageLogContext& context, const Q
     QTextStream ts(&outFile);
     ts <<QDateTime::currentDateTime().toString() <<  txt << endl;
 }
+
+uint64_t get_current_ms(){
+    struct timeval te;
+    gettimeofday(&te, NULL); // get current time
+    long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // caculate milliseconds
+    return milliseconds;
+}
+
+
 int main(int argc, char *argv[])
 {
     //qInstallMessageHandler(myMessageHandler);
