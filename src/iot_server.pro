@@ -26,13 +26,14 @@ TEMPLATE = app
 
 
 
-LIBS += -L../../liboic-build -loic
+LIBS += -L../../liboic -loic
 INCLUDEPATH += ../../liboic
 
 LIBS += -L../../libcoap -lcoap
 INCLUDEPATH += ../../libcoap
 
 INCLUDEPATH += ../../std
+INCLUDEPATH += ../../rfm69-driver
 
 
 SOURCES += main.cpp \
@@ -47,8 +48,8 @@ SOURCES += main.cpp \
     IotDevice.cpp \
     IPv4OcfDeviceController.cpp \
     Rfm69OcfDeviceController.cpp \
-    rfm69.cpp \
-    rfm69hal.c
+    ../../rfm69-driver/rfm69.cpp \
+    ../../rfm69-driver/rfm69hal.c
 
 HEADERS += \
     SmartHomeServer.h \
@@ -62,5 +63,5 @@ HEADERS += \
     IotDevice.h \
     IPv4OcfDeviceController.h \
     Rfm69OcfDeviceController.h \
-    rfm69.hpp \
-    rfm69hal.h
+    ../../rfm69-driver/rfm69.h \
+    ../../rfm69-driver/rfm69hal.h

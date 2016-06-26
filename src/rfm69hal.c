@@ -9,7 +9,6 @@ uint64_t get_current_ms(){
     struct timeval te; 
     gettimeofday(&te, NULL); // get current time
     long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // caculate milliseconds
-    // printf("milliseconds: %lld\n", milliseconds);
     return milliseconds;
 }
 
@@ -26,8 +25,6 @@ int rfm69hal_init(){
 
 void rfm69hal_delay_ms(uint32_t ms){
 	usleep(ms*1000);
-
-
 }
 
 uint32_t rfm69hal_get_timer_ms(){

@@ -4,7 +4,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#define RPI
+#define RPI_
 
 #ifdef RPI
 #include <wiringPiSPI.h>
@@ -17,6 +17,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
         int rfm69hal_init();
         void rfm69hal_delay_ms(uint32_t ms);
         uint32_t rfm69hal_get_timer_ms();
