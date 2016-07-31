@@ -49,7 +49,8 @@ SOURCES += main.cpp \
     IPv4OcfDeviceController.cpp \
     Rfm69OcfDeviceController.cpp \
     ../../rfm69-driver/rfm69.cpp \
-    ../../rfm69-driver/rfm69hal.c
+    ../../rfm69-driver/rfm69hal.c \
+    Rfm69DeviceController.cpp
 
 HEADERS += \
     SmartHomeServer.h \
@@ -64,4 +65,5 @@ HEADERS += \
     IPv4OcfDeviceController.h \
     Rfm69OcfDeviceController.h \
     ../../rfm69-driver/rfm69.h \
-    ../../rfm69-driver/rfm69hal.h
+    ../../rfm69-driver/rfm69hal.h \
+    Rfm69DeviceController.h
