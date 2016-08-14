@@ -27,7 +27,7 @@ void* Rfm69DeviceController::run(void* param){
     Rfm69DeviceController* ctrl = (Rfm69DeviceController*)param;
 
     uint8_t packet[512];
-    uint16_t packet_len;
+    int16_t packet_len;
 
     Rfm69* rfm69 = new Rfm69();
     rfm69->reset();
