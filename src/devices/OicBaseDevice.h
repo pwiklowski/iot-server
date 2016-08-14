@@ -10,7 +10,7 @@ class OicBaseDevice : public QObject
 {
     Q_OBJECT
 public:
-    OicBaseDevice();
+    OicBaseDevice(QString name, QString id);
     OICServer* getServer(){return server;}
     void setSocketFd(int s) { m_socketFd = s;}
 

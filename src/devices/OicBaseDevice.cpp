@@ -7,8 +7,10 @@
 
 
 
-OicBaseDevice::OicBaseDevice()
+OicBaseDevice::OicBaseDevice(QString name, QString id)
 {
+    m_name = name;
+    m_id = id;
 }
 
 void OicBaseDevice::start(){

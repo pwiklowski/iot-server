@@ -5,8 +5,9 @@
 
 
 OicBinnarySwitch::OicBinnarySwitch(QString name, QString id) :
-    OicBaseDevice()
+    OicBaseDevice(name, id)
 {
+
     server = new OICServer(name.toLatin1().data(), id.toLatin1().data(), [&](COAPPacket* packet){
         this->send_packet(packet);
     });
