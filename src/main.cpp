@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
     IPv4OcfDeviceController ocf(&server);
     ocf.start();
 
-    Rfm69DeviceController rfm;
+    Rfm69DeviceController rfm(&server);
     rfm.start();
 
 

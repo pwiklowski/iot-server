@@ -15,6 +15,10 @@ public:
     void setSocketFd(int s) { m_socketFd = s;}
 
     void start();
+
+
+    QString getName(){return m_name;}
+    QString getId(){return m_id;}
 signals:
 
 public slots:
