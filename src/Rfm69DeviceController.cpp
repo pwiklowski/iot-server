@@ -37,8 +37,10 @@ void* Rfm69DeviceController::run(void* param){
     rfm69->setMode(RFM69_MODE_RX);
     rfm69->waitForModeReady();
 
+    uint8_t ack;
     while(1){
-        packet_len = rfm69->receivePacket((uint8_t*)packet, 512);
+        //packet_len = rfm69->receivePacket((uint8_t*)packet, 512);
+        packet_len = rfm69->read(packet, 512, &ack);
 
         if (packet_len > 0){
             qDebug() << "Received something" << packet_len;
