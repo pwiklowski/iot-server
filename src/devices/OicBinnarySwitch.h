@@ -8,6 +8,7 @@ class OicBinnarySwitch : public OicBaseDevice
 {
 public:
     OicBinnarySwitch(QString name, QString id);
+    void updateValue(bool pressed);
 };
 
 #endif // OICBINNARYSWITCH_H
