@@ -82,7 +82,7 @@ void Rfm69DeviceController::parseMessage(QByteArray message){
 
     if (type == OIC_R_SWITCH_BINARY){
         quint8 value = message.at(5);
-        qDebug() << deviceId << "value" << value;
+        qDebug() << createDeviceId(deviceId) << "value" << value;
         ((OicBinnarySwitch*)device)->updateValue(value);
     }
 
