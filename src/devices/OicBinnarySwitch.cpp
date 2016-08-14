@@ -16,10 +16,13 @@ OicBinnarySwitch::OicBinnarySwitch(QString name, QString id) :
     initial.append("value", 1);
 
     OICResource* button = new OICResource("/switch", "oic.r.switch.binary","oic.if.r", [&](cbor* data){
-        qDebug() << "Front updated";
+        qDebug() << "switch updated";
     }, initial);
     server->addResource(button);
 
     start();
 }
 
+void OicBinnarySwitch::updateValue(bool pressed){
+    notifyObservers("/switch", pressed ? 1 : 0);
+}
