@@ -74,7 +74,7 @@ void Rfm69DeviceController::parseMessage(QByteArray message){
     OcfDeviceType type = (OcfDeviceType)message.at(4);
     OicBaseDevice* device = getDevice(deviceId);
 
-    if (deviceId == 0){
+    if (device == 0){
         qDebug() << "Create new Rfm69 device" << createDeviceId(deviceId);
         device = new OicBinnarySwitch("Virtual Button", createDeviceId(deviceId));
         m_clientList.append(device);
