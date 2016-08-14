@@ -1,0 +1,25 @@
+#include "OicBinnarySwitch.h"
+#include "cbor.h"
+#include "OICResource.h"
+#include "QDebug"
+
+
+OicBinnarySwitch::OicBinnarySwitch(QString name, QString id) :
+    OicBaseDevice()
+{
+    server = new OICServer(name.toLatin1().data(), id.toLatin1().data(), [&](COAPPacket* packet){
+        this->send_packet(packet);
+    });
+
+    cbor initial(CBOR_TYPE_MAP);
+    initial.append("rt", "oic.r.switch.binary");
+    initial.append("value", 1);
+
+    OICResource* button = new OICResource("/switch", "oic.r.switch.binary","oic.if.r", [&](cbor* data){
+        qDebug() << "Front updated";
+    }, initial);
+    server->addResource(button);
+
+    start();
+}
+
