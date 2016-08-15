@@ -35,14 +35,14 @@ void OcfDeviceController::start(){
 
 void OcfDeviceController::ping(){
     for (Device* d: m_clientList){
-        qDebug() << "ping" << d->getAddress();
+        //qDebug() << "ping" << d->getAddress();
         m_client->ping(d->getAddress().toLatin1().data(), [=](COAPPacket* p){
             if (p == 0){
                 qDebug() << "Remove" << d->getName() << d->getID();
                 emit deviceRemoved(d);
                 m_clientList.removeOne(d);
             }else{
-                qDebug() << "pong";
+                //qDebug() << "pong";
             }
         });
     }
