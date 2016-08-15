@@ -8,6 +8,7 @@
 #include "IPv4OcfDeviceController.h"
 #include "Rfm69OcfDeviceController.h"
 #include "Rfm69DeviceController.h"
+#include "BleButtonDeviceControler.h"
 
 #include <iostream>
 #include <stdlib.h>
@@ -124,6 +125,9 @@ int main(int argc, char *argv[])
 
     Rfm69DeviceController rfm(&server);
     rfm.start();
+
+    BleButtonDeviceControler ble;
+    ble.start();
 
 
     //Rfm69OcfDeviceController rfm(&server);
