@@ -129,10 +129,6 @@ int main(int argc, char *argv[])
     BleButtonDeviceControler ble;
     ble.start();
 
-
-    //Rfm69OcfDeviceController rfm(&server);
-    //rfm.start();
-
     DjangoInterface dj(&server);
 
 
