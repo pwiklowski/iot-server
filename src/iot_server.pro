@@ -52,7 +52,8 @@ SOURCES += main.cpp \
     ../../rfm69-driver/rfm69hal.c \
     Rfm69DeviceController.cpp \
     devices/OicBinnarySwitch.cpp \
-    devices/OicBaseDevice.cpp
+    devices/OicBaseDevice.cpp \
+    BleButtonDeviceControler.cpp
 
 HEADERS += \
     SmartHomeServer.h \
@@ -70,4 +71,5 @@ HEADERS += \
     ../../rfm69-driver/rfm69hal.h \
     Rfm69DeviceController.h \
     devices/OicBinnarySwitch.h \
-    devices/OicBaseDevice.h
+    devices/OicBaseDevice.h \
+    BleButtonDeviceControler.h
