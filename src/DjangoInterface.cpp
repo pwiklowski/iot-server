@@ -131,6 +131,7 @@ void DjangoInterface::parseMessages(quint8 type, QByteArray payload, QTcpSocket*
             break;
         }
     }
+    socket->close();
 }
 
 void DjangoInterface::removeClient()
