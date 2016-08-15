@@ -138,7 +138,6 @@ void OicBaseDevice::send_packet(COAPPacket* packet){
     client.sin_port = htons(port);
     client.sin_addr.s_addr = inet_addr(ip.c_str());
 
-    qDebug() << "Send packet mid" << packet->getMessageId() << "dest=" << destination.c_str();
     send_packet(client, packet);
 }
 void OicBaseDevice::send_packet(sockaddr_in destination, COAPPacket* packet){
@@ -146,13 +145,12 @@ void OicBaseDevice::send_packet(sockaddr_in destination, COAPPacket* packet){
     size_t response_len;
     socklen_t l = sizeof(destination);
     packet->build(buffer, &response_len);
-    qDebug() << "size" << response_len;
     sendto(m_socketFd, buffer, response_len, 0, (struct sockaddr*)&destination, l);
 }
 
 
 void OicBaseDevice::notifyObservers(QString name, quint8 val){
-    qDebug() << "notiftyObservers";
+    qDebug() <<m_name << m_id << "notiftyObservers";
 
     cbor value(CBOR_TYPE_MAP);
     value.append("rt", "oic.r.switch.binary");
