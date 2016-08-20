@@ -6,49 +6,30 @@
 #include "QTcpServer"
 #include "QTcpSocket"
 
-
-typedef enum
-{
-    DJANGO_GET_DEVICE_LIST,
-    DJANGO_DEVICE_LIST,
-
-    DJANGO_GET_BUTTON_LIST,
-    DJANGO_BUTTON_LIST,
-
-    DJANGO_GET_VALUES_LIST,
-    DJANGO_VALUES_LIST,
-
-    DJANGO_GET_SENSORS_LIST,
-    DJANGO_SENSORS_LIST,
-
-    DJANGO_GET_DEVICE_DESCRIPTION,
-    DJANGO_DEVICE_DESCRIPTION,
+#include "qhttpserver.hpp"
+#include "qhttpserverresponse.hpp"
+#include "qhttpserverrequest.hpp"
 
 
-}SmartHomeMessageTypes;
+using namespace qhttp::server;
+
 
 class DjangoInterface : public QObject
 {
     Q_OBJECT
 public:
     explicit DjangoInterface(SmartHomeServer* controller, QObject *parent = 0);
+    void getScripts(QString id);
+
+
 
 signals:
 
 public slots:
-
-    void handleNewConnection();
-    void removeClient();
-
-
-    void readData();
-    void parseMessages(quint8 type, QByteArray payload, QTcpSocket* socket);
-
+    void handleRequest(QHttpRequest* req, QHttpResponse* res);
 private:
     SmartHomeServer* m_controller;
-    QTcpServer m_server;
-
-
+    QHttpServer m_httpServer;
 };
 
 #endif // DJANGOINTERFACE_H
