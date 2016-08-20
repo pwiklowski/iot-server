@@ -5,25 +5,38 @@
 #include "Settings.h"
 #include "QDateTime"
 
+#include "QNetworkRequest"
+#include "QNetworkReply"
 #include "QTimer"
+#include "QEventLoop"
+
+#define API_URL "http://127.0.0.1:9000/api"
+
 
 SmartHomeServer::SmartHomeServer(QObject *parent) :
     QObject(parent)
 {
     Settings* settings = new Settings(this);
     m_server.listen(QHostAddress::Any, 9999);
+    m_network = new QNetworkAccessManager(this);
 
-    m_db = QSqlDatabase::addDatabase("QSQLITE");
-    m_db.setConnectOptions("QSQLITE_OPEN_READONLY");
-    //m_db.setDatabaseName(settings->getValue("database").toString());
-    m_db.setDatabaseName("/home/pawwik/dev/iot_webui/db.sqlite3");
-
-    if (!m_db.open())
-    {
-        qWarning() << "Unable to open database";
-    }
 
     temp = engine.newObject();
+
+}
+
+
+void SmartHomeServer::getDeviceScripts(QString id){
+    QUrl url(API_URL  "/scripts/device/" + id);
+
+    QNetworkReply *reply = m_network->get(QNetworkRequest(url));
+
+    QEventLoop loop;
+    QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
+
+    loop.exec();
+
+    qDebug() << "response" << reply->readAll();
 }
 
 void SmartHomeServer::deviceAdded(IotDevice* d){
@@ -81,11 +94,9 @@ QStringList SmartHomeServer::getScripts(QString id)
 {
     QStringList scripts;
 
-    QSqlQuery query = m_db.exec("SELECT script FROM webui_iotscripts WHERE di='"+id+"';");
-    qDebug() << query.lastError().text();
-    while (query.next()) {
-        scripts << query.value(0).toString();
-    }
+    QString responseJson = getDeviceScripts(id);
+    //TODO parse it and pass it over to script engine
+
     return scripts;
 }
 void SmartHomeServer::saveGlobalObject(QString key, QScriptValue obj)
