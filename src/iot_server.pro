@@ -25,6 +25,9 @@ TEMPLATE = app
 #LIBS += -L../../liboic -loic
 
 
+LIBS += -L../../qhttp/xbin -lqhttp
+INCLUDEPATH += ../../qhttp/src/
+
 
 LIBS += -L../../liboic -loic
 INCLUDEPATH += ../../liboic
