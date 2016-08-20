@@ -7,15 +7,12 @@
 #include "IotEventSetting.h"
 #include "QtScript/QScriptEngine"
 #include "QMap"
-#include "QSqlDatabase"
-#include "QSqlQuery"
-#include "QSqlError"
 
 #include <arpa/inet.h>
 #include <net/if.h>
 
 #include "Device.h"
-
+#include "QNetworkAccessManager"
 
 
 class SmartHomeServer : public QObject
@@ -28,6 +25,7 @@ signals:
     void devicesChanged();
 public slots:
 
+    void getDeviceScripts(QString id);
 
     QList<IotDevice *> getClientList();
     void iotEventReceived(QString source,  QByteArray eventData);
@@ -62,10 +60,11 @@ private:
 
     QString generateHash();
 
-    QSqlDatabase m_db;
     QTcpServer m_server;
 
     QList<IotEventSetting*> mSettingsList;
+
+    QNetworkAccessManager *m_network;
 };
 
 #endif // SMARTHOMESERVER_H
