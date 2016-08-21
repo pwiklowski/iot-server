@@ -9,6 +9,10 @@
 #include "QNetworkReply"
 #include "QTimer"
 #include "QEventLoop"
+#include "QJsonDocument"
+#include "QJsonArray"
+#include "QJsonValue"
+#include "QJsonObject"
 
 #define API_URL "http://127.0.0.1:9000/api"
 
@@ -26,7 +30,7 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
 }
 
 
-void SmartHomeServer::getDeviceScripts(QString id){
+QByteArray SmartHomeServer::getDeviceScripts(QString id){
     QUrl url(API_URL  "/scripts/device/" + id);
 
     QNetworkReply *reply = m_network->get(QNetworkRequest(url));
@@ -36,7 +40,7 @@ void SmartHomeServer::getDeviceScripts(QString id){
 
     loop.exec();
 
-    qDebug() << "response" << reply->readAll();
+    return reply->readAll();
 }
 
 void SmartHomeServer::deviceAdded(IotDevice* d){
@@ -95,7 +99,14 @@ QStringList SmartHomeServer::getScripts(QString id)
     QStringList scripts;
 
     QString responseJson = getDeviceScripts(id);
-    //TODO parse it and pass it over to script engine
+
+    QJsonDocument response = QJsonDocument::fromJson(responseJson.toLatin1());
+    QJsonArray array = response.array();
+
+    foreach(QJsonValue obj, array){
+        QJsonValue s = obj.toObject().take("Scripts").toArray().at(0).toObject().take("Content");
+        scripts.append(QByteArray::fromBase64(s.toString().toLatin1()));
+    }
 
     return scripts;
 }
