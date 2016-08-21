@@ -25,7 +25,7 @@ signals:
     void devicesChanged();
 public slots:
 
-    void getDeviceScripts(QString id);
+    QByteArray getDeviceScripts(QString id);
 
     QList<IotDevice *> getClientList();
     void iotEventReceived(QString source,  QByteArray eventData);
