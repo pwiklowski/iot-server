@@ -115,8 +115,11 @@ uint64_t get_current_ms(){
 
 int main(int argc, char *argv[])
 {
-    //qInstallMessageHandler(myMessageHandler);
-    //init_daemon();
+
+    for (int i=0; i<argc; i++){
+        if (QString(argv[i]) == "-d") init_daemon();
+        if (QString(argv[i]) == "-l") qInstallMessageHandler(myMessageHandler);
+    }
 
     QCoreApplication a(argc, argv);
     SmartHomeServer server;
