@@ -109,11 +109,19 @@ void DjangoInterface::handleRequest(QHttpRequest* req, QHttpResponse* res){
 
 
         req->collectData();
-        req->onEnd([&]() {
+        req->onEnd([=]() {
+            qDebug() << QString(req->collectedData());
 
             QJsonDocument json =  QJsonDocument::fromJson(req->collectedData());
+            QScriptEngine* engine = m_controller->getEngine();
 
-            m_controller->runScript(id, json.toVariant());
+            QScriptValue e = engine->newObject();
+
+            foreach(QString key, json.object().keys()){
+                e.setProperty(key, engine->newVariant(json.object().value(key).toVariant()));
+            }
+
+            m_controller->runScript(id, e);
             qDebug() << "Run script" << id;
         });
 
