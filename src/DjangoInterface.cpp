@@ -23,6 +23,7 @@ void DjangoInterface::handleRequest(QHttpRequest* req, QHttpResponse* res){
     QString url = req->url().toString();
 
     QRegExp devicesScripts("/device/(.+)/script");
+    QRegExp runScript("/script/(.+)/run");
 
 
     qDebug() << devicesScripts.indexIn(req->url().toString());
@@ -53,7 +54,7 @@ void DjangoInterface::handleRequest(QHttpRequest* req, QHttpResponse* res){
 
         QString json;
 
-        IotDevice* dev = m_controller->getClient(id);
+        IotDevice* dev = m_controller->getDeviceById(id);
 
         QVariantMap* storedVariables = m_controller->getVariablesStorage(id);
 
@@ -96,6 +97,19 @@ void DjangoInterface::handleRequest(QHttpRequest* req, QHttpResponse* res){
 
         res->setStatusCode(qhttp::ESTATUS_OK);
         res->end("OK");
+    }else if (runScript.indexIn(url) == 0){
+        QString id = runScript.cap(1);
+
+
+        req->collectData();
+        req->onEnd([&]() {
+
+            QJsonDocument json =  QJsonDocument::fromJson(req->collectedData());
+
+            m_controller->runScript(id, json.toVariant());
+            qDebug() << "Run script" << id;
+        });
+
     }else{
         res->setStatusCode(qhttp::ESTATUS_NOT_FOUND);
         res->end("404");
