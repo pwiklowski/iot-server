@@ -29,10 +29,8 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
 
 }
 
-
-QByteArray SmartHomeServer::getDeviceScripts(QString id){
-    QUrl url(API_URL  "/scripts/device/" + id);
-
+QString SmartHomeServer::getScript(QString id){
+    QUrl url(API_URL  "/script/" + id);
     QNetworkReply *reply = m_network->get(QNetworkRequest(url));
 
     QEventLoop loop;
@@ -40,6 +38,23 @@ QByteArray SmartHomeServer::getDeviceScripts(QString id){
 
     loop.exec();
 
+    QJsonDocument response = QJsonDocument::fromJson(reply->readAll());
+
+    QJsonValue s = response.object().take("Scripts").toArray().at(0).toObject().take("Content");
+
+    QString script = QByteArray::fromBase64(s.toString().toLatin1());
+
+    return script;
+}
+
+QByteArray SmartHomeServer::getDeviceScripts(QString id){
+    QUrl url(API_URL  "/scripts/device/" + id);
+    QNetworkReply *reply = m_network->get(QNetworkRequest(url));
+
+    QEventLoop loop;
+    QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
+
+    loop.exec();
     return reply->readAll();
 }
 
@@ -58,7 +73,19 @@ QList<IotDevice *> SmartHomeServer::getClientList()
 {
     return m_clientList;
 }
-IotDevice *SmartHomeServer::getClient(QString id)
+IotDevice *SmartHomeServer::getDeviceByName(QString name)
+{
+    foreach(IotDevice* client, m_clientList)
+    {
+        if (client->getName() == name)
+        {
+            return client;
+        }
+    }
+    return 0;
+}
+
+IotDevice *SmartHomeServer::getDeviceById(QString id)
 {
     foreach(IotDevice* client, m_clientList)
     {
@@ -70,21 +97,40 @@ IotDevice *SmartHomeServer::getClient(QString id)
     return 0;
 }
 
-QVariant SmartHomeServer::getValue(QString id, QString resource){
-    QVariantMap* vars = getVariablesStorage(id);
+IotDevice *SmartHomeServer::getDeviceByPath(QString path)
+{
+    QStringList p = path.mid(0, path.indexOf("/")).split(":");
+
+    if (p.at(0) == "id")
+        return getDeviceById(p.at(1));
+    else
+        return getDeviceByName(p.at(1));
+
+}
+
+QVariant SmartHomeServer::getValue(QString resource){
+    IotDevice* dev = getDeviceByPath(resource);
+
+
+    QVariantMap* vars = getVariablesStorage(dev->getID());
     if (!vars) return 0;
 
 
     return vars->value(resource);
 }
 
-bool SmartHomeServer::setValue(QString id, QString resource, QVariantMap value)
+
+
+bool SmartHomeServer::setValue(QString resource, QVariantMap value)
 {
-    IotDevice* client = getClient(id);
+    qDebug() << resource << value;
+    IotDevice* client = getDeviceByPath(resource);
+
+    QString variableURI= resource.mid(resource.indexOf("/"));
 
     if (client!=0)
     {
-        IotDeviceVariable* variable = client->getVariable(resource);
+        IotDeviceVariable* variable = client->getVariable(variableURI);
 
         if (variable != 0){
             variable->set(value);
@@ -130,27 +176,25 @@ void SmartHomeServer::iotEventReceived(QString source,  QByteArray eventData)
 QScriptValue logger( QScriptContext * ctx, QScriptEngine * eng ) {
     return QScriptValue();
 }
-void SmartHomeServer::onValueChanged(QString id, QString resource, QVariantMap value){
-    IotDevice* d = getClient(id);
-
-    if (d == 0)
-        return;
-
-    qDebug() << "onValueChanged" << d->getID() << resource << value;
-
-    QVariantMap* v = m_variablesStorage.value(d->getID());
-    v->insert(resource, value);
 
 
-    QVariantMap eventInfo;
 
-    QScriptValue event = engine.newObject();
-    event.setProperty("source",d->getID());
-    event.setProperty("resource", resource);
-    event.setProperty("data", engine.toScriptValue(value));
+void SmartHomeServer::runScript(QString id, QVariant event){
 
-    engine.globalObject().setProperty("event", event);
-    engine.globalObject().setProperty("server", engine.newQObject(this));
+    QString script = getScript(id);
+    QScriptValue e = engine.newObject();
+
+    foreach(QString key, event.toMap().keys()){
+        e.setProperty(key, engine.newVariant(event.toMap().value(key)));
+    }
+
+
+    engine.globalObject().setProperty("Event", e);
+
+    engine.globalObject().setProperty("Server", engine.newQObject(this));
+    engine.globalObject().setProperty("Device", engine.newQObject(m_deviceHelper));
+
+
 
     QScriptValue time = engine.newObject();
 
@@ -163,11 +207,36 @@ void SmartHomeServer::onValueChanged(QString id, QString resource, QVariantMap v
 
     engine.globalObject().setProperty("time", time);
 
+    QScriptValue error = engine.evaluate(script);
+    qDebug() << "error" << error.toString();
+
+
+}
+
+
+void SmartHomeServer::onValueChanged(QString id, QString resource, QVariantMap value){
+    IotDevice* d = getDeviceById(id);
+
+    if (d == 0)
+        return;
+
+    QVariantMap event;
+
+    event["source"] = d->getID();
+    event["resource"] = resource;
+    event["value"] = value;
+
+
     QStringList scripts  = getScripts(d->getID());
     foreach(QString script, scripts)
     {
-        QScriptValue error = engine.evaluate(QUrl::fromPercentEncoding(script.toLatin1()));
-        qDebug() << "error" << error.toString();
+
+
     }
+
+
+
+    qDebug() << "onValueChanged" << d->getID() << resource << value;
+
 }
 

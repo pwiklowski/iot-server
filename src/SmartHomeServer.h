@@ -29,15 +29,23 @@ public slots:
 
     QList<IotDevice *> getClientList();
     void iotEventReceived(QString source,  QByteArray eventData);
-    QVariant getValue(QString id, QString resource);
-    bool setValue(QString id, QString resource, QVariantMap value);
+    QVariant getValue(QString resource);
+    bool setValue(QString resource, QVariantMap value);
 
     QMap<QString, QVariantMap> getLastEventMap() { return m_lastEventMap;}
     QMap<QString, QVariantMap*>* getVariablesStorage() {return &m_variablesStorage;}
     QVariantMap* getVariablesStorage(QString client_id) {return m_variablesStorage.value(client_id);}
 
 
-    IotDevice *getClient(QString id);
+
+
+    QString getScript(QString id);
+    IotDevice *getDeviceByName(QString name);
+    IotDevice *getDeviceById(QString id);
+    IotDevice *getDeviceByPath(QString path);
+
+
+    void runScript(QString id, QVariant event);
 
     void saveGlobalObject(QString key, QScriptValue obj);
     QScriptValue getGlobalObject(QString key);
