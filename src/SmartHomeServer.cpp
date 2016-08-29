@@ -192,7 +192,6 @@ void SmartHomeServer::runScript(QString id, QVariant event){
     engine.globalObject().setProperty("Event", e);
 
     engine.globalObject().setProperty("Server", engine.newQObject(this));
-    engine.globalObject().setProperty("Device", engine.newQObject(m_deviceHelper));
 
 
 

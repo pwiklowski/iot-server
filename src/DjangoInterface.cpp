@@ -42,6 +42,13 @@ void DjangoInterface::handleRequest(QHttpRequest* req, QHttpResponse* res){
             dev["name"] = device->getName();
             dev["id"] = device->getID().remove("device:");
 
+            QJsonArray vars;
+            for(int i=0; i<device->getVariables()->size(); i++){
+                IotDeviceVariable* var = device->getVariables()->at(i);
+                vars.append(QJsonValue::fromVariant(var->getResource()));
+            }
+            dev["variables"] = vars;
+
             devs.append(dev);
         }
         root.insert("devices", devs);
