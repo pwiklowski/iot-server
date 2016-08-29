@@ -45,7 +45,7 @@ public slots:
     IotDevice *getDeviceByPath(QString path);
 
 
-    void runScript(QString id, QVariant event);
+    void runScript(QString id, QScriptValue event);
 
     void saveGlobalObject(QString key, QScriptValue obj);
     QScriptValue getGlobalObject(QString key);
@@ -54,6 +54,7 @@ public slots:
 
     void deviceAdded(IotDevice* d);
     void deviceRemoved(IotDevice* d);
+    QScriptEngine* getEngine();
 private:
     QList<IotDevice*>  m_clientList;
     QMap<QString, quint8> m_ignoreMap;

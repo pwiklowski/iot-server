@@ -29,6 +29,11 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
 
 }
 
+
+QScriptEngine* SmartHomeServer::getEngine(){
+    return &engine;
+}
+
 QString SmartHomeServer::getScript(QString id){
     QUrl url(API_URL  "/script/" + id);
     QNetworkReply *reply = m_network->get(QNetworkRequest(url));
@@ -179,17 +184,10 @@ QScriptValue logger( QScriptContext * ctx, QScriptEngine * eng ) {
 
 
 
-void SmartHomeServer::runScript(QString id, QVariant event){
-
+void SmartHomeServer::runScript(QString id, QScriptValue event){
     QString script = getScript(id);
-    QScriptValue e = engine.newObject();
 
-    foreach(QString key, event.toMap().keys()){
-        e.setProperty(key, engine.newVariant(event.toMap().value(key)));
-    }
-
-
-    engine.globalObject().setProperty("Event", e);
+    engine.globalObject().setProperty("Event", event);
 
     engine.globalObject().setProperty("Server", engine.newQObject(this));
 
