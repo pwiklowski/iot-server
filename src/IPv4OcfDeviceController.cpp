@@ -118,7 +118,7 @@ int IPv4OcfDeviceController::readPacket(uint8_t* buf, uint16_t maxSize, String* 
 
     struct sockaddr_in client;
     socklen_t l = sizeof(client);
-    size_t rc = poll(&pfd, 1, 200); // 1000 ms timeout
+    size_t rc = poll(&pfd, 1, 20); // 1000 ms timeout
     if (rc >0){
         rc = recvfrom(m_socketFd, buf, maxSize, 0, (struct sockaddr *)&client,&l);
 
