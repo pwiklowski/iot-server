@@ -6,6 +6,7 @@
 #include <poll.h>
 
 
+extern uint64_t get_current_ms();
 
 OicBaseDevice::OicBaseDevice(QString name, QString id)
 {
@@ -65,15 +66,21 @@ void* OicBaseDevice::run(void* param){
     pfd.fd = fd;
     pfd.events = POLLIN;
     size_t rc;
+    uint64_t lastTick = get_current_ms();
     while(1){
-        rc = poll(&pfd, 1, 100); // 1000 ms timeout
+        rc = poll(&pfd, 1, 20); // 1000 ms timeout
         if(rc>0){
             rc= recvfrom(fd,buffer,sizeof(buffer),0,(struct sockaddr *)&client,&l);
             COAPPacket* p = COAPPacket::parse(buffer, rc, a->convertAddress(client).c_str());
             if (p!=0)
                 coap_server->handleMessage(p);
         }
-        coap_server->tick();
+        coap_server->sendPackets();
+
+        if ((get_current_ms() - lastTick) > 1000){
+            lastTick = get_current_ms();
+            coap_server->checkPackets();
+        }
     }
 }
 

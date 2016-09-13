@@ -1,6 +1,10 @@
 #include "OcfDeviceController.h"
 #include "QDebug"
 
+
+
+extern uint64_t get_current_ms();
+
 OcfDeviceController::OcfDeviceController(SmartHomeServer* parent) : QObject((QObject*)parent)
 {
     m_server = parent;
@@ -116,6 +120,9 @@ void* OcfDeviceController::run(void* param){
 
     size_t rc;
     String address;
+
+    uint64_t lastTick = get_current_ms();
+
     while(1){
         rc = d->readPacket(buffer, sizeof(buffer), &address);
         if (rc >0){
@@ -125,7 +132,12 @@ void* OcfDeviceController::run(void* param){
                 delete p;
             }
         }
-        coap_server->tick();
+        coap_server->sendPackets();
+
+        if ((get_current_ms() - lastTick) > 1000){
+            lastTick = get_current_ms();
+            coap_server->checkPackets();
+        }
     }
 }
 
