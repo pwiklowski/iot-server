@@ -132,8 +132,6 @@ void* OcfDeviceController::run(void* param){
                 delete p;
             }
         }
-        coap_server->sendPackets();
-
         if ((get_current_ms() - lastTick) > 1000){
             lastTick = get_current_ms();
             coap_server->checkPackets();
