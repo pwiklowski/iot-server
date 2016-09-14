@@ -55,6 +55,8 @@ public slots:
     void deviceAdded(IotDevice* d);
     void deviceRemoved(IotDevice* d);
     QScriptEngine* getEngine();
+    void debug(QString str );
+    void postLog(QString scriptid, QString message);
 private:
     QList<IotDevice*>  m_clientList;
     QMap<QString, quint8> m_ignoreMap;
