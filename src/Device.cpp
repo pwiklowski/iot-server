@@ -57,7 +57,7 @@ void DeviceVariable::set(QVariantMap value){
     }
 
     //emit valueChanged();
-    m_resource->post(&m_value, [&] (COAPPacket* response){
+    m_resource->post(m_value, [&] (COAPPacket* response){
         if (response == 0){
             qDebug() << "post timeout";
             return;
