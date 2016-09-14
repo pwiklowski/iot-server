@@ -75,7 +75,6 @@ void* OicBaseDevice::run(void* param){
             if (p!=0)
                 coap_server->handleMessage(p);
         }
-        coap_server->sendPackets();
 
         if ((get_current_ms() - lastTick) > 1000){
             lastTick = get_current_ms();
