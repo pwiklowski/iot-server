@@ -52,6 +52,17 @@ QString SmartHomeServer::getScript(QString id){
     return script;
 }
 
+void SmartHomeServer::postLog(QString scriptid, QString message){
+    QUrl url(API_URL  "/logs/" + scriptid);
+    QNetworkReply *reply = m_network->post(QNetworkRequest(url), message.toLatin1());
+
+    QEventLoop loop;
+    QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
+
+    loop.exec();
+}
+
+
 QByteArray SmartHomeServer::getDeviceScripts(QString id){
     QUrl url(API_URL  "/scripts/device/" + id);
     QNetworkReply *reply = m_network->get(QNetworkRequest(url));
@@ -178,20 +189,19 @@ void SmartHomeServer::iotEventReceived(QString source,  QByteArray eventData)
 
 }
 
-QScriptValue logger( QScriptContext * ctx, QScriptEngine * eng ) {
-    return QScriptValue();
+void SmartHomeServer::debug(QString str ) {
+    qDebug() << str;
+    postLog("fcb05237-08c6-4c07-8b9f-c243c558f4fa", str);
 }
 
 
 
 void SmartHomeServer::runScript(QString id, QScriptValue event){
     QString script = getScript(id);
+    postLog(id, "Run script " + id + event.toString());
 
     engine.globalObject().setProperty("Event", event);
-
     engine.globalObject().setProperty("Server", engine.newQObject(this));
-
-
 
     QScriptValue time = engine.newObject();
 
@@ -205,7 +215,16 @@ void SmartHomeServer::runScript(QString id, QScriptValue event){
     engine.globalObject().setProperty("time", time);
 
     QScriptValue error = engine.evaluate(script);
-    qDebug() << "error" << error.toString();
+
+    if (error.toString() == "undefined"){
+        postLog(id, "Success");
+    }else{
+        postLog(id, error.toString());
+        qDebug() << "error" << error.toString();
+    }
+
+
+
 
 
 }
