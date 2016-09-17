@@ -254,5 +254,8 @@ void SmartHomeServer::onValueChanged(QString id, QString resource, QVariantMap v
 
     qDebug() << "onValueChanged" << d->getID() << resource << value;
 
+    QVariantMap* vars = getVariablesStorage(d->getID());
+
+    vars->insert(resource, (QVariantMap) value);
 }
 
