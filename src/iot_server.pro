@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core network script sql
+QT       += core network script sql websockets
 QT       += serialport
 QT       -= gui
 
@@ -56,7 +56,8 @@ SOURCES += main.cpp \
     Rfm69DeviceController.cpp \
     devices/OicBinnarySwitch.cpp \
     devices/OicBaseDevice.cpp \
-    BleButtonDeviceControler.cpp
+    BleButtonDeviceControler.cpp \
+    WebSocketServer.cpp
 
 HEADERS += \
     SmartHomeServer.h \
@@ -75,4 +76,5 @@ HEADERS += \
     Rfm69DeviceController.h \
     devices/OicBinnarySwitch.h \
     devices/OicBaseDevice.h \
-    BleButtonDeviceControler.h
+    BleButtonDeviceControler.h \
+    WebSocketServer.h
