@@ -13,6 +13,7 @@
 #include "QJsonArray"
 #include "QJsonValue"
 #include "QJsonObject"
+#include "QVariantMap"
 
 #define API_URL "http://127.0.0.1:9000/api"
 
@@ -23,7 +24,6 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
     Settings* settings = new Settings(this);
     m_server.listen(QHostAddress::Any, 9999);
     m_network = new QNetworkAccessManager(this);
-
 
     temp = engine.newObject();
 
@@ -251,11 +251,11 @@ void SmartHomeServer::onValueChanged(QString id, QString resource, QVariantMap v
     }
 
 
-
-    qDebug() << "onValueChanged" << d->getID() << resource << value;
-
     QVariantMap* vars = getVariablesStorage(d->getID());
 
     vars->insert(resource, (QVariantMap) value);
+
+
+    emit valueChanged(id, resource, value);
 }
 

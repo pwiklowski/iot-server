@@ -9,6 +9,8 @@
 #include "Rfm69OcfDeviceController.h"
 #include "Rfm69DeviceController.h"
 #include "BleButtonDeviceControler.h"
+#include "WebSocketServer.h"
+
 
 #include <iostream>
 #include <stdlib.h>
@@ -18,6 +20,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+
 
 
 #define LOG_FILE "/usr/local/wiklosoft/log"
@@ -134,6 +137,8 @@ int main(int argc, char *argv[])
 
     DjangoInterface dj(&server);
 
+
+    WebSocketServer ws(&server);
 
     return a.exec();
 }
