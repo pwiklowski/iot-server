@@ -114,7 +114,6 @@ void* OcfDeviceController::run(void* param){
     uint8_t buffer[1024];
     OcfDeviceController* d = (OcfDeviceController*) param;
     OICClient* oic_server = d->getClient();
-    COAPServer* coap_server = oic_server->getCoapServer();
 
     bool res = d->init();
 
@@ -128,13 +127,13 @@ void* OcfDeviceController::run(void* param){
         if (rc >0){
             COAPPacket* p = COAPPacket::parse(buffer, rc, address.c_str());
             if (p != 0){
-                coap_server->handleMessage(p);
+                oic_server->handleMessage(p);
                 delete p;
             }
         }
         if ((get_current_ms() - lastTick) > 1000){
             lastTick = get_current_ms();
-            coap_server->checkPackets();
+            oic_server->checkPackets();
         }
     }
 }
