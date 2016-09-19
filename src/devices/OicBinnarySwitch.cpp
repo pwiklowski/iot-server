@@ -12,9 +12,9 @@ OicBinnarySwitch::OicBinnarySwitch(QString name, QString id) :
         this->send_packet(packet);
     });
 
-    cbor initial(CBOR_TYPE_MAP);
-    initial.append("rt", "oic.r.switch.binary");
-    initial.append("value", 1);
+    cbor* initial = new cbor(CBOR_TYPE_MAP);
+    initial->append("rt", "oic.r.switch.binary");
+    initial->append("value", 1);
 
     OICResource* button = new OICResource("/switch", "oic.r.switch.binary","oic.if.r", [&](cbor* data){
         qDebug() << "switch updated";
