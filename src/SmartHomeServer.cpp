@@ -71,7 +71,12 @@ QByteArray SmartHomeServer::getDeviceScripts(QString id){
     QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
 
     loop.exec();
-    return reply->readAll();
+
+    QByteArray data = reply->readAll();
+
+    delete reply;
+
+    return data;
 }
 
 void SmartHomeServer::deviceAdded(IotDevice* d){
