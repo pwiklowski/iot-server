@@ -1,6 +1,8 @@
 #include "BleScanner.h"
 #include "QDebug"
 #include "QString"
+#include "QDataStream"
+
 BleScanner::BleScanner(QObject *parent) : QObject(parent)
 {
 
