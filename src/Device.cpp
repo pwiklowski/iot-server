@@ -52,12 +52,12 @@ QVariantMap DeviceVariable::toQMap(cbor* map){
 void DeviceVariable::set(QVariantMap value){
     qDebug() << "post" << m_resource->getHref().c_str() << value;
 
+    cbor v(CBOR_TYPE_MAP);
     foreach (QString k, value.keys()){
-        m_value.toMap()->insert(k.toLatin1().data(), value.value(k).toInt());
+        v.toMap()->insert(k.toLatin1().data(), value.value(k).toInt());
     }
 
-    //emit valueChanged();
-    m_resource->post(m_value, [&] (COAPPacket* response){
+    m_resource->post(v, [&] (COAPPacket* response){
         if (response == 0){
             qDebug() << "post timeout";
             return;
@@ -72,9 +72,11 @@ void DeviceVariable::observe(){
             qDebug() << "observe timeout";
             return;
         }
-        cbor::parse(&m_value, response->getPayload());
-        qDebug() << "Value updated" << m_resource->getHref().c_str();
-        emit valueChanged(m_device->getId().c_str(), m_resource->getHref().c_str(), toQMap(&m_value));
+        cbor v;
+
+        cbor::parse(&v, response->getPayload());
+       qDebug() << "Value updated" << m_resource->getHref().c_str();
+        emit valueChanged(m_device->getId().c_str(), m_resource->getHref().c_str(), toQMap(&v));
     });
 }
 void DeviceVariable::unobserve(){
