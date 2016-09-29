@@ -31,30 +31,63 @@ void WebSocketServer::onNewConnection()
 
 void WebSocketServer::processTextMessage(QString message)
 {
-    QWebSocket *pClient = qobject_cast<QWebSocket *>(sender());
-    QString url  = pClient->requestUrl().path();
+    QWebSocket *socket = qobject_cast<QWebSocket *>(sender());
+    QString url  = socket->requestUrl().path();
 
-    qDebug() << "processTextMessage" << pClient->requestUrl().path() << message;
+    qDebug() << "processTextMessage" << message;
 
 
     QRegExp deviceValue("/device/(.+)/value");
 
 
+    QJsonObject msg =  QJsonDocument::fromJson(message.toLatin1()).object();
 
-    if (deviceValue.indexIn(url) == 0){
-        QJsonDocument json =  QJsonDocument::fromJson(message.toLatin1());
-        QString id = deviceValue.cap(1);
+    QJsonObject payload = msg.value("payload").toObject();
+    int mid = msg.value("mid").toInt(-1);
 
+    QString request = payload.value("request").toString();
+    if (request == "GET_DEVICES"){
+        QJsonObject response;
+        response.insert("mid",mid);
+
+
+        QList<IotDevice*> devices = m_server->getClientList();
+        QJsonObject root;
+        QString json;
+        QJsonArray devs;
+
+        for(int i=0; i<devices.length();i++)
+        {
+            IotDevice* device = devices.at(i);
+            QJsonObject dev;
+            dev["name"] = device->getName();
+            dev["id"] = device->getID().remove("device:");
+
+            QJsonArray vars;
+            for(int i=0; i<device->getVariables()->size(); i++){
+                IotDeviceVariable* var = device->getVariables()->at(i);
+                vars.append(QJsonValue::fromVariant(var->getResource()));
+            }
+            dev["variables"] = vars;
+
+            devs.append(dev);
+        }
+        root.insert("devices", devs);
+        json = QJsonDocument(root).toJson(QJsonDocument::Compact);
+
+        response.insert("payload", root);
+
+        socket->sendTextMessage(QJsonDocument(response).toJson());
+    }else if(request == "SET_VALUE"){
+        QString id = payload.value("di").toString();
+        QString resource = payload.value("resource").toString();
+        QVariantMap value = payload.value("value").toObject().toVariantMap();
 
         IotDevice* device = m_server->getDeviceById(id);
-
-        QString resource = json.object().value("resource").toString();
-        QJsonObject value = json.object().value("value").toObject();
-
-
-        IotDeviceVariable* variable = device->getVariable(resource);
-
-        variable->set(value.toVariantMap());
+        if (device){
+            IotDeviceVariable* variable = device->getVariable(resource);
+            variable->set(value);
+        }
 
     }
 }
@@ -74,12 +107,17 @@ void WebSocketServer::onValueChanged(QString id, QString resource, QVariantMap v
 
 
     QJsonObject obj;
-    obj.insert("resource", resource);
-    obj.insert("value", QJsonObject::fromVariantMap(value));
+    obj.insert("method", "VALUE");
 
+    QJsonObject payload;
+    payload.insert("di", id);
+    payload.insert("resource", resource);
+    payload.insert("value", QJsonObject::fromVariantMap(value));
+
+    obj.insert("payload", payload);
 
     foreach (QWebSocket* s, m_socketList) {
-
+        //todo update only to instrested websockts, get url and check if id matches
         s->sendTextMessage(QJsonDocument(obj).toJson());
 
     }
