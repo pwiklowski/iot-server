@@ -9,7 +9,7 @@ WebSocketServer::WebSocketServer(SmartHomeServer* server) : QObject(server)
     connect(m_server, SIGNAL(valueChanged(QString,QString,QVariantMap)), this, SLOT(onValueChanged(QString, QString,QVariantMap)));
 
     m_webSocketServer = new QWebSocketServer("wiklosoft_iot", QWebSocketServer::NonSecureMode, this);
-    if (m_webSocketServer->listen(QHostAddress::Any, 16000)) {
+    if (m_webSocketServer->listen(QHostAddress::Any, 7002)) {
         connect(m_webSocketServer, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
     }
 }
