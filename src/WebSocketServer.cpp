@@ -7,6 +7,7 @@ WebSocketServer::WebSocketServer(SmartHomeServer* server) : QObject(server)
 {
     m_server = server;
     connect(m_server, SIGNAL(valueChanged(QString,QString,QVariantMap)), this, SLOT(onValueChanged(QString, QString,QVariantMap)));
+    connect(m_server, SIGNAL(devicesChanged()), this, SLOT(onDeviceListUpdate()));
 
     m_webSocketServer = new QWebSocketServer("wiklosoft_iot", QWebSocketServer::NonSecureMode, this);
     if (m_webSocketServer->listen(QHostAddress::Any, 7002)) {
@@ -101,6 +102,41 @@ void WebSocketServer::socketDisconnected()
     }
 }
 
+void WebSocketServer::onDeviceListUpdate(){
+    QJsonObject event;
+    event.insert("event", "EventDeviceListUpdate");
+
+    QList<IotDevice*> devices = m_server->getClientList();
+    QJsonObject root;
+    QString json;
+    QJsonArray devs;
+
+    for(int i=0; i<devices.length();i++)
+    {
+        IotDevice* device = devices.at(i);
+        QJsonObject dev;
+        dev["name"] = device->getName();
+        dev["id"] = device->getID().remove("device:");
+
+        QJsonArray vars;
+        for(int i=0; i<device->getVariables()->size(); i++){
+            IotDeviceVariable* var = device->getVariables()->at(i);
+            vars.append(QJsonValue::fromVariant(var->getResource()));
+        }
+        dev["variables"] = vars;
+
+        devs.append(dev);
+    }
+    root.insert("devices", devs);
+    json = QJsonDocument(root).toJson(QJsonDocument::Compact);
+
+    event.insert("payload", root);
+
+    foreach (QWebSocket* s, m_socketList) {
+        s->sendTextMessage(QJsonDocument(event).toJson());
+
+    }
+}
 
 void WebSocketServer::onValueChanged(QString id, QString resource, QVariantMap value){
     qDebug() << "WebSocket onValueChanged" << id << resource << value;
