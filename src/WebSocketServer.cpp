@@ -46,7 +46,7 @@ void WebSocketServer::processTextMessage(QString message)
     int mid = msg.value("mid").toInt(-1);
 
     QString request = payload.value("request").toString();
-    if (request == "GET_DEVICES"){
+    if (request == "ReqestGetDevices"){
         QJsonObject response;
         response.insert("mid",mid);
 
@@ -78,7 +78,7 @@ void WebSocketServer::processTextMessage(QString message)
         response.insert("payload", root);
 
         socket->sendTextMessage(QJsonDocument(response).toJson());
-    }else if(request == "SET_VALUE"){
+    }else if(request == "RequestSetValue"){
         QString id = payload.value("di").toString();
         QString resource = payload.value("resource").toString();
         QVariantMap value = payload.value("value").toObject().toVariantMap();
@@ -105,9 +105,8 @@ void WebSocketServer::socketDisconnected()
 void WebSocketServer::onValueChanged(QString id, QString resource, QVariantMap value){
     qDebug() << "WebSocket onValueChanged" << id << resource << value;
 
-
     QJsonObject obj;
-    obj.insert("method", "VALUE");
+    obj.insert("event", "EventValueUpdate");
 
     QJsonObject payload;
     payload.insert("di", id);
@@ -117,11 +116,7 @@ void WebSocketServer::onValueChanged(QString id, QString resource, QVariantMap v
     obj.insert("payload", payload);
 
     foreach (QWebSocket* s, m_socketList) {
-        //todo update only to instrested websockts, get url and check if id matches
         s->sendTextMessage(QJsonDocument(obj).toJson());
-
     }
-
-
-
 }
+
