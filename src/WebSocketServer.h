@@ -19,6 +19,7 @@ public slots:
     void processTextMessage(QString message);
     void socketDisconnected();
     void onValueChanged(QString id, QString resource, QVariantMap value);
+    void onDeviceListUpdate();
 
 private:
     SmartHomeServer* m_server;

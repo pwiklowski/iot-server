@@ -82,12 +82,13 @@ QByteArray SmartHomeServer::getDeviceScripts(QString id){
 void SmartHomeServer::deviceAdded(IotDevice* d){
    m_variablesStorage.insert(d->getID(), new QVariantMap());
    m_clientList.append(d);
+   emit devicesChanged();
 }
 
 void SmartHomeServer::deviceRemoved(IotDevice *d){
     m_variablesStorage.remove(d->getID());
     m_clientList.removeOne(d);
-
+    emit devicesChanged();
 }
 
 QList<IotDevice *> SmartHomeServer::getClientList()
