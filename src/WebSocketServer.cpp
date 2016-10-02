@@ -47,7 +47,7 @@ void WebSocketServer::processTextMessage(QString message)
     int mid = msg.value("mid").toInt(-1);
 
     QString request = payload.value("request").toString();
-    if (request == "ReqestGetDevices"){
+    if (request == "RequestGetDevices"){
         QJsonObject response;
         response.insert("mid",mid);
 
@@ -90,7 +90,49 @@ void WebSocketServer::processTextMessage(QString message)
             variable->set(value);
         }
 
+    }else if(request == "RequestSetValue"){
+        QScriptEngine* engine = m_server->getEngine();
+        QScriptValue e = engine->newObject();
+
+        QString id = payload.value("uuid").toString();
+        QJsonObject obj = payload.value("uuid").toObject();
+
+        foreach(QString key, obj.keys()){
+            e.setProperty(key, engine->newVariant(obj.value(key).toVariant()));
+        }
+
+        m_server->runScript(id, e);
+        qDebug() << "Run script" << id;
+    }else if(request == "RequestGetDeviceResources"){
+        QJsonObject response;
+        response.insert("mid",mid);
+
+        QString id = payload.value("uuid").toString();
+
+        IotDevice* dev = m_server->getDeviceById(id);
+
+        QVariantMap* storedVariables = m_server->getVariablesStorage(id);
+
+        QJsonArray vars;
+        if (dev)
+        {
+            for(int i=0; i<dev->getVariables()->size(); i++)
+            {
+                IotDeviceVariable* var = dev->getVariables()->at(i);
+                QVariantMap res = storedVariables->value(var->getResource()).toMap();
+
+                QJsonObject v;
+                v["name"] = var->getResource();
+                v["values"]= QJsonObject::fromVariantMap(res);
+                vars.append(v);
+            }
+        }
+
+        response.insert("payload", vars);
+        socket->sendTextMessage(QJsonDocument(response).toJson());
     }
+
+
 }
 void WebSocketServer::socketDisconnected()
 {
