@@ -4,7 +4,6 @@
 #include "QTextStream"
 #include <QCoreApplication>
 #include "SmartHomeServer.h"
-#include "DjangoInterface.h"
 #include "IPv4OcfDeviceController.h"
 #include "Rfm69OcfDeviceController.h"
 #include "Rfm69DeviceController.h"
@@ -135,7 +134,6 @@ int main(int argc, char *argv[])
     BleButtonDeviceControler ble;
     ble.start();
 
-    DjangoInterface dj(&server);
 
 
     WebSocketServer ws(&server);

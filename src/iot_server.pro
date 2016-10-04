@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core network script sql websockets
+QT       += core network script websockets
 QT       += serialport
 QT       -= gui
 
@@ -25,10 +25,6 @@ TEMPLATE = app
 #LIBS += -L../../liboic -loic
 
 
-LIBS += -L../../qhttp/xbin -lqhttp
-INCLUDEPATH += ../../qhttp/src/
-
-
 LIBS += -L../../liboic -loic
 INCLUDEPATH += ../../liboic
 
@@ -44,7 +40,6 @@ SOURCES += main.cpp \
     BleScanner.cpp \
     IotEventSetting.cpp \
     IotEvent.cpp \
-    DjangoInterface.cpp \
     Settings.cpp \
     Device.cpp \
     OcfDeviceController.cpp \
@@ -64,7 +59,6 @@ HEADERS += \
     BleScanner.h \
     IotEventSetting.h \
     IotEvent.h \
-    DjangoInterface.h \
     Settings.h \
     Device.h \
     OcfDeviceController.h \
