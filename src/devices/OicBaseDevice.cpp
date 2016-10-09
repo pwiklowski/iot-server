@@ -75,8 +75,8 @@ void* OicBaseDevice::run(void* param){
                 oic_server->handleMessage(p);
         }
 
-        if ((get_current_ms() - lastTick) > 1000){
         oic_server->sendQueuedPackets();
+        if ((get_current_ms() - lastTick) > 50){
             lastTick = get_current_ms();
             oic_server->checkPackets();
         }

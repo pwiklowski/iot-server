@@ -132,7 +132,7 @@ void* OcfDeviceController::run(void* param){
             }
         }
         oic_server->sendQueuedPackets();
-        if ((get_current_ms() - lastTick) > 1000){
+        if ((get_current_ms() - lastTick) > 50){
             lastTick = get_current_ms();
             oic_server->checkPackets();
         }
