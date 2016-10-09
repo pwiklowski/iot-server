@@ -31,7 +31,9 @@ void* Rfm69DeviceController::run(void* param){
 
     Rfm69* rfm69 = new Rfm69();
     rfm69->reset();
-    rfm69->init();
+    bool res = rfm69->init();
+    if (!res) return 0;
+
     rfm69->sleep();
     rfm69->setPowerDBm(0); // +10 dBm
     rfm69->setMode(RFM69_MODE_RX);
