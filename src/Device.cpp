@@ -54,7 +54,15 @@ void DeviceVariable::set(QVariantMap value){
 
     cbor v(CBOR_TYPE_MAP);
     foreach (QString k, value.keys()){
-        v.toMap()->insert(k.toLatin1().data(), value.value(k).toInt());
+        QVariant val = value.value(k);
+
+        if (val.type() == QVariant::String){
+            v.toMap()->insert(k.toLatin1().data(), value.value(k).toString().toLatin1().data());
+        }else if (val.type() == QVariant::Int || val.type() == QVariant::Double){
+            v.toMap()->insert(k.toLatin1().data(), value.value(k).toInt());
+        }
+
+
     }
 
     m_resource->post(v, [&] (COAPPacket* response){
