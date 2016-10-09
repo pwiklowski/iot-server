@@ -77,6 +77,8 @@ void OcfDeviceController::findDevices()
         if (packet->getCode() != COAP_RSPCODE_CONTENT)
             return false;
 
+        if (!message.is_array())
+            return false;
         for (uint16_t i=0; i<message.toArray()->size(); i++){
             cbor device = message.toArray()->at(i);
 
