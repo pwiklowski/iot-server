@@ -90,7 +90,7 @@ void WebSocketServer::processTextMessage(QString message)
             variable->set(value);
         }
 
-    }else if(request == "RequestSetValue"){
+    }else if(request == "RequestRunScript"){
         QScriptEngine* engine = m_server->getEngine();
         QScriptValue e = engine->newObject();
 
