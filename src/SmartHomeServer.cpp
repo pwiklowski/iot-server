@@ -15,7 +15,7 @@
 #include "QJsonObject"
 #include "QVariantMap"
 
-#define API_URL "http://127.0.0.1:9000/api"
+#define API_URL "http://127.0.0.1:7000/api"
 
 
 SmartHomeServer::SmartHomeServer(QObject *parent) :
