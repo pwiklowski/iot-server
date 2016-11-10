@@ -52,7 +52,8 @@ SOURCES += main.cpp \
     devices/OicBinnarySwitch.cpp \
     devices/OicBaseDevice.cpp \
     BleButtonDeviceControler.cpp \
-    WebSocketServer.cpp
+    WebSocketServer.cpp \
+    WebSocketConnection.cpp
 
 HEADERS += \
     SmartHomeServer.h \
@@ -71,4 +72,5 @@ HEADERS += \
     devices/OicBinnarySwitch.h \
     devices/OicBaseDevice.h \
     BleButtonDeviceControler.h \
-    WebSocketServer.h
+    WebSocketServer.h \
+    WebSocketConnection.h

@@ -21,25 +21,31 @@ void WebSocketServer::onNewConnection()
 
     qDebug() << "new connection" << socket->requestUrl();\
 
-    m_socketList.append(socket);
-
+    m_socketList.append(new WebSocketConnection(socket));
 
     connect(socket, SIGNAL(textMessageReceived(QString)), this, SLOT(processTextMessage(QString)));
     connect(socket, SIGNAL(disconnected()), this,  SLOT(socketDisconnected()));
-
+}
+WebSocketConnection* WebSocketServer::getSocketConnection(QWebSocket* socket){
+    foreach (WebSocketConnection* s, m_socketList) {
+        if (s->getSocket() == socket){
+            return  s;
+        }
+    }
+    return 0;
 }
 
 
 void WebSocketServer::processTextMessage(QString message)
 {
-    QWebSocket *socket = qobject_cast<QWebSocket *>(sender());
-    QString url  = socket->requestUrl().path();
+    QWebSocket *websocket = qobject_cast<QWebSocket *>(sender());
+    WebSocketConnection* connection = getSocketConnection(websocket);
+
+    QString url  = connection->getSocket()->requestUrl().path();
 
     qDebug() << "processTextMessage" << message;
 
-
     QRegExp deviceValue("/device/(.+)/value");
-
 
     QJsonObject msg =  QJsonDocument::fromJson(message.toLatin1()).object();
 
@@ -78,7 +84,7 @@ void WebSocketServer::processTextMessage(QString message)
 
         response.insert("payload", root);
 
-        socket->sendTextMessage(QJsonDocument(response).toJson());
+        connection->getSocket()->sendTextMessage(QJsonDocument(response).toJson());
     }else if(request == "RequestSetValue"){
         QString id = payload.value("di").toString();
         QString resource = payload.value("resource").toString();
@@ -89,6 +95,26 @@ void WebSocketServer::processTextMessage(QString message)
             IotDeviceVariable* variable = device->getVariable(resource);
             variable->set(value);
         }
+
+    }else if(request == "RequestSubscribeDevice"){
+        QString uuid = payload.value("uuid").toString();
+        connection->getDeviceSubscription()->append(uuid);
+        qDebug() << "RequestSubscribeDevice" << uuid;
+
+    }else if(request == "RequestUnsubscribeDevice"){
+        QString uuid = payload.value("uuid").toString();
+        connection->getDeviceSubscription()->removeAll(uuid);
+        qDebug() << "RequestUnsubscribeDevice" << uuid;
+
+    }else if(request == "RequestSubscribeScript"){
+        QString uuid = payload.value("uuid").toString();
+        connection->getScriptSubscription()->append(uuid);
+        qDebug() << "RequestSubscribeScript" << uuid;
+
+    }else if(request == "RequestUnsubscribeScript"){
+        QString uuid = payload.value("uuid").toString();
+        connection->getScriptSubscription()->removeAll(uuid);
+        qDebug() << "RequestUnsubscribeScript" << uuid;
 
     }else if(request == "RequestRunScript"){
         QScriptEngine* engine = m_server->getEngine();
@@ -129,7 +155,10 @@ void WebSocketServer::processTextMessage(QString message)
         }
 
         response.insert("payload", vars);
-        socket->sendTextMessage(QJsonDocument(response).toJson());
+
+        qDebug() << QJsonDocument(response).toJson();
+
+        connection->getSocket()->sendTextMessage(QJsonDocument(response).toJson());
     }
 
 
@@ -138,9 +167,11 @@ void WebSocketServer::socketDisconnected()
 {
     qDebug() << "socketDisconnected";
     QWebSocket* client = qobject_cast<QWebSocket *>(sender());
-    m_socketList.removeAll(client);
-    if (client) {
-        client->deleteLater();
+
+    for(WebSocketConnection* connection: m_socketList){
+        if (connection->getSocket() == client){
+            m_socketList.removeAll(connection);
+        }
     }
 }
 
@@ -174,8 +205,8 @@ void WebSocketServer::onDeviceListUpdate(){
 
     event.insert("payload", root);
 
-    foreach (QWebSocket* s, m_socketList) {
-        s->sendTextMessage(QJsonDocument(event).toJson());
+    foreach (WebSocketConnection* s, m_socketList) {
+        s->getSocket()->sendTextMessage(QJsonDocument(event).toJson());
 
     }
 }
@@ -193,8 +224,9 @@ void WebSocketServer::onValueChanged(QString id, QString resource, QVariantMap v
 
     obj.insert("payload", payload);
 
-    foreach (QWebSocket* s, m_socketList) {
-        s->sendTextMessage(QJsonDocument(obj).toJson());
+    foreach (WebSocketConnection* s, m_socketList) {
+        s->getSocket()->sendTextMessage(QJsonDocument(obj).toJson());
+        s->getSocket()->flush();
     }
 }
 
