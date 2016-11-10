@@ -225,8 +225,10 @@ void WebSocketServer::onValueChanged(QString id, QString resource, QVariantMap v
     obj.insert("payload", payload);
 
     foreach (WebSocketConnection* s, m_socketList) {
-        s->getSocket()->sendTextMessage(QJsonDocument(obj).toJson());
-        s->getSocket()->flush();
+        if (s->getDeviceSubscription()->contains(id)){
+            s->getSocket()->sendTextMessage(QJsonDocument(obj).toJson());
+            s->getSocket()->flush();
+        }
     }
 }
 
