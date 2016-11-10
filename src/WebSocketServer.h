@@ -6,6 +6,9 @@
 #include "QtWebSockets/qwebsocketserver.h"
 #include "QtWebSockets/qwebsocket.h"
 
+#include "WebSocketConnection.h"
+
+
 class WebSocketServer : public QObject
 {
     Q_OBJECT
@@ -22,9 +25,10 @@ public slots:
     void onDeviceListUpdate();
 
 private:
+    WebSocketConnection* getSocketConnection(QWebSocket* socket);
     SmartHomeServer* m_server;
     QWebSocketServer* m_webSocketServer;
-    QList<QWebSocket*> m_socketList;
+    QList<WebSocketConnection*> m_socketList;
 };
 
 #endif // WEBSOCKETSERVER_H
