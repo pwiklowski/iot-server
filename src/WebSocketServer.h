@@ -23,6 +23,7 @@ public slots:
     void socketDisconnected();
     void onValueChanged(QString id, QString resource, QVariantMap value);
     void onDeviceListUpdate();
+    void onLogMessage(QString uuid, QString message);
 
 private:
     WebSocketConnection* getSocketConnection(QWebSocket* socket);

@@ -53,13 +53,7 @@ QString SmartHomeServer::getScript(QString id){
 }
 
 void SmartHomeServer::postLog(QString scriptid, QString message){
-    QUrl url(API_URL  "/logs/" + scriptid);
-    QNetworkReply *reply = m_network->post(QNetworkRequest(url), message.toLatin1());
-
-    QEventLoop loop;
-    QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
-
-    loop.exec();
+    emit newLogMessage(scriptid, message);
 }
 
 
@@ -202,9 +196,19 @@ void SmartHomeServer::debug(QString str ) {
 
 
 
-void SmartHomeServer::runScript(QString id, QScriptValue event){
+void SmartHomeServer::runScript(QString id, QJsonObject obj){
+    qDebug() <<  QJsonDocument(obj).toJson();
     QString script = getScript(id);
-    postLog(id, "Run script " + id + event.toString());
+    postLog(id, "Start script " + id);
+    postLog(id, "event: " + QJsonDocument(obj).toJson());
+    QScriptValue event = engine.newObject();
+
+    foreach(QJsonValue key, obj.keys()){
+        //TODO: do deep copy
+
+        qDebug() << key;
+        event.setProperty(key, engine.newVariant(obj.value(key.toString()));
+    }
 
     engine.globalObject().setProperty("Event", event);
     engine.globalObject().setProperty("Server", engine.newQObject(this));
@@ -230,9 +234,7 @@ void SmartHomeServer::runScript(QString id, QScriptValue event){
     }
 
 
-
-
-
+    postLog(id, "End script " + id);
 }
 
 

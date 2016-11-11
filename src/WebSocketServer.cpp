@@ -1,6 +1,7 @@
 #include "WebSocketServer.h"
 #include "QJsonDocument"
 #include "QJsonObject"
+#include "QJsonValue"
 #include "QJsonArray"
 
 WebSocketServer::WebSocketServer(SmartHomeServer* server) : QObject(server)
@@ -8,6 +9,7 @@ WebSocketServer::WebSocketServer(SmartHomeServer* server) : QObject(server)
     m_server = server;
     connect(m_server, SIGNAL(valueChanged(QString,QString,QVariantMap)), this, SLOT(onValueChanged(QString, QString,QVariantMap)));
     connect(m_server, SIGNAL(devicesChanged()), this, SLOT(onDeviceListUpdate()));
+    connect(m_server, SIGNAL(newLogMessage(QString,QString)), this, SLOT(onLogMessage(QString, QString)));
 
     m_webSocketServer = new QWebSocketServer("wiklosoft_iot", QWebSocketServer::NonSecureMode, this);
     if (m_webSocketServer->listen(QHostAddress::Any, 7002)) {
@@ -95,7 +97,6 @@ void WebSocketServer::processTextMessage(QString message)
             IotDeviceVariable* variable = device->getVariable(resource);
             variable->set(value);
         }
-
     }else if(request == "RequestSubscribeDevice"){
         QString uuid = payload.value("uuid").toString();
         connection->getDeviceSubscription()->append(uuid);
@@ -117,18 +118,11 @@ void WebSocketServer::processTextMessage(QString message)
         qDebug() << "RequestUnsubscribeScript" << uuid;
 
     }else if(request == "RequestRunScript"){
-        QScriptEngine* engine = m_server->getEngine();
-        QScriptValue e = engine->newObject();
+        qDebug() << "RequestRunScript";
 
         QString id = payload.value("uuid").toString();
-        QJsonObject obj = payload.value("uuid").toObject();
-
-        foreach(QString key, obj.keys()){
-            e.setProperty(key, engine->newVariant(obj.value(key).toVariant()));
-        }
-
-        m_server->runScript(id, e);
-        qDebug() << "Run script" << id;
+        QJsonObject obj = payload.value("object").toObject();
+        m_server->runScript(id, obj);
     }else if(request == "RequestGetDeviceResources"){
         QJsonObject response;
         response.insert("mid",mid);
@@ -226,6 +220,23 @@ void WebSocketServer::onValueChanged(QString id, QString resource, QVariantMap v
 
     foreach (WebSocketConnection* s, m_socketList) {
         if (s->getDeviceSubscription()->contains(id)){
+            s->getSocket()->sendTextMessage(QJsonDocument(obj).toJson());
+            s->getSocket()->flush();
+        }
+    }
+}
+
+
+void WebSocketServer::onLogMessage(QString uuid, QString message){
+    qDebug() << "onLogMessage" << uuid << message;
+    QJsonObject obj;
+    obj.insert("event", "EventLog");
+
+    QJsonObject payload;
+    payload.insert("uuid",uuid);
+    obj.insert("payload", message);
+    foreach (WebSocketConnection* s, m_socketList) {
+        if (s->getScriptSubscription()->contains(uuid)){
             s->getSocket()->sendTextMessage(QJsonDocument(obj).toJson());
             s->getSocket()->flush();
         }

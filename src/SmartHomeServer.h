@@ -6,6 +6,7 @@
 #include "QTcpServer"
 #include "IotEventSetting.h"
 #include "QtScript/QScriptEngine"
+#include "QJsonObject"
 #include "QMap"
 
 #include <arpa/inet.h>
@@ -24,6 +25,8 @@ public:
 signals:
     void devicesChanged();
     void valueChanged(QString id, QString resource, QVariantMap value);
+    void newLogMessage(QString uuid, QString message);
+
 public slots:
 
     QByteArray getDeviceScripts(QString id);
@@ -46,7 +49,7 @@ public slots:
     IotDevice *getDeviceByPath(QString path);
 
 
-    void runScript(QString id, QScriptValue event);
+    void runScript(QString id, QJsonObject obj);
 
     void saveGlobalObject(QString key, QScriptValue obj);
     QScriptValue getGlobalObject(QString key);
