@@ -123,7 +123,7 @@ void WebSocketServer::processTextMessage(QString message)
 
         QString id = payload.value("uuid").toString();
         QJsonObject obj = payload.value("object").toObject();
-        m_server->runScript(id, obj);
+        m_server->runScriptId(id, obj.toVariantMap());
     }else if(request == "RequestGetDeviceResources"){
         QJsonObject response;
         response.insert("mid",mid);

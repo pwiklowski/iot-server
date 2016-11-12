@@ -49,7 +49,8 @@ public slots:
     IotDevice *getDeviceByPath(QString path);
 
 
-    void runScript(QString id, QJsonObject obj);
+    void runScriptId(QString id, QVariantMap obj);
+    void runScript(QString scriptId, QString script, QVariantMap obj);
 
     void saveGlobalObject(QString key, QScriptValue obj);
     QScriptValue getGlobalObject(QString key);
@@ -66,7 +67,7 @@ private:
     QMap<QString, quint8> m_ignoreMap;
     QMap<QString, QVariantMap> m_lastEventMap;
     QMap<QString, QVariantMap> m_sensorsMap;
-    QStringList getScripts(QString src);
+    QJsonArray getScripts(QString src);
     QScriptValue temp;
     QScriptEngine engine;
 
