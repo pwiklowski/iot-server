@@ -12,7 +12,6 @@
 #include "QJsonDocument"
 #include "QJsonArray"
 #include "QJsonValue"
-#include "QJsonObject"
 #include "QVariantMap"
 
 #define API_URL "http://127.0.0.1:7000/api"
@@ -156,21 +155,14 @@ bool SmartHomeServer::setValue(QString resource, QVariantMap value)
     }
     return false;
 }
-QStringList SmartHomeServer::getScripts(QString id)
+QJsonArray SmartHomeServer::getScripts(QString id)
 {
     QStringList scripts;
 
     QString responseJson = getDeviceScripts(id);
 
     QJsonDocument response = QJsonDocument::fromJson(responseJson.toLatin1());
-    QJsonArray array = response.array();
-
-    foreach(QJsonValue obj, array){
-        QJsonValue s = obj.toObject().take("Scripts").toArray().at(0).toObject().take("Content");
-        scripts.append(QByteArray::fromBase64(s.toString().toLatin1()));
-    }
-
-    return scripts;
+    return response.array();
 }
 void SmartHomeServer::saveGlobalObject(QString key, QScriptValue obj)
 {
@@ -195,20 +187,20 @@ void SmartHomeServer::debug(QString str ) {
 }
 
 
-
-void SmartHomeServer::runScript(QString id, QJsonObject obj){
-    qDebug() <<  QJsonDocument(obj).toJson();
+void SmartHomeServer::runScriptId(QString id, QVariantMap obj){
     QString script = getScript(id);
-    postLog(id, "Start script " + id);
-    postLog(id, "event: " + QJsonDocument(obj).toJson());
+    runScript(id, script, obj);
+}
+
+void SmartHomeServer::runScript(QString scriptId, QString script, QVariantMap obj){
+    postLog(scriptId, "Start script " + scriptId);
+    //postLog(script, "event: " + obj.));
     QScriptValue event = engine.newObject();
 
-    foreach(QJsonValue key, obj.keys()){
-        //TODO: do deep copy
-
-        qDebug() << key;
-        event.setProperty(key, engine.newVariant(obj.value(key.toString()));
+    foreach(QVariant key, obj.keys()){
+       event.setProperty(key.toString(), engine.newVariant(obj.value(key.toString())));
     }
+
 
     engine.globalObject().setProperty("Event", event);
     engine.globalObject().setProperty("Server", engine.newQObject(this));
@@ -227,14 +219,14 @@ void SmartHomeServer::runScript(QString id, QJsonObject obj){
     QScriptValue error = engine.evaluate(script);
 
     if (error.toString() == "undefined"){
-        postLog(id, "Success");
+        postLog(scriptId, "Success");
     }else{
-        postLog(id, error.toString());
+        postLog(scriptId, error.toString());
         qDebug() << "error" << error.toString();
     }
 
 
-    postLog(id, "End script " + id);
+    postLog(scriptId, "End script " + scriptId);
 }
 
 
@@ -251,12 +243,16 @@ void SmartHomeServer::onValueChanged(QString id, QString resource, QVariantMap v
     event["value"] = value;
 
 
-    QStringList scripts  = getScripts(d->getID());
-    foreach(QString script, scripts)
-    {
+    QJsonArray scripts  = getScripts(d->getID());
 
+    foreach(QJsonValue obj, scripts){
+        QJsonValue s = obj.toObject().take("Scripts").toArray().at(0).toObject().take("Content");
+        QJsonValue scriptId = obj.toObject().take("ScriptUuid").toString();
+        QString script = QByteArray::fromBase64(s.toString().toLatin1());
 
+        runScript(scriptId.toString(), script, event);
     }
+
 
 
     QVariantMap* vars = getVariablesStorage(d->getID());
