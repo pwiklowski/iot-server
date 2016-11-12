@@ -216,6 +216,9 @@ void SmartHomeServer::runScript(QString scriptId, QString script, QVariantMap ob
 
     engine.globalObject().setProperty("time", time);
 
+    QScriptValue storage = m_cloudScriptStorage.value(scriptId, engine.newObject());
+    engine.globalObject().setProperty("ctx", storage);
+
     QScriptValue error = engine.evaluate(script);
 
     if (error.toString() == "undefined"){
@@ -227,6 +230,7 @@ void SmartHomeServer::runScript(QString scriptId, QString script, QVariantMap ob
 
 
     postLog(scriptId, "End script " + scriptId);
+    m_cloudScriptStorage.insert(scriptId, storage);
 }
 
 
