@@ -58,6 +58,7 @@ void WebSocketServer::processTextMessage(QString message)
     if (request == "RequestGetDevices"){
         QJsonObject response;
         response.insert("mid",mid);
+        response.insert("event", "EventDeviceListUpdate");
 
 
         QList<IotDevice*> devices = m_server->getClientList();
