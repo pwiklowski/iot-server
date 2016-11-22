@@ -6,17 +6,8 @@
 
 
 
-Rfm69DeviceController::Rfm69DeviceController(SmartHomeServer* parent): QObject((QObject*)parent)
+Rfm69DeviceController::Rfm69DeviceController(QObject* parent): QObject(parent)
 {
-    m_server = parent;
-
-
-//    m_clientList.append(new OicBinnarySwitch("static Button 1", "00000000-0000-0000-FFFF-0000BD61ADC1"));
-//    m_clientList.append(new OicBinnarySwitch("static Button 2", "0000B960-736F-46F7-BEC0-9E6CBD61ADC2"));
-//    m_clientList.append(new OicBinnarySwitch("static Button 3", "0000B960-736F-46F7-BEC0-9E6CBD61ADC3"));
-//    m_clientList.append(new OicBinnarySwitch("static Button 4", "0000B960-736F-46F7-BEC0-9E6CBD61ADC4"));
-
-
 
 }
 void Rfm69DeviceController::start(){

@@ -1,10 +1,11 @@
 #include "Rfm69OcfDeviceController.h"
 #include <unistd.h>
+#include "QDebug"
 
 #define FREQUENCY RF69_868MHZ
 
 Rfm69OcfDeviceController::Rfm69OcfDeviceController(SmartHomeServer* s) :
-    OcfDeviceController(s)
+    OcfDeviceController(0)
 {
     rfm69 = new Rfm69();
 }
