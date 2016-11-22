@@ -2,15 +2,16 @@
 #define OCFDEVICECONTROLLER_H
 
 #include <QObject>
-#include "Device.h"
 #include "QTimer"
-#include "SmartHomeServer.h"
+#include "OICClient.h"
+#include "IotDevice.h"
+#include "Device.h"
 
 class OcfDeviceController : public QObject
 {
     Q_OBJECT
 public:
-    OcfDeviceController(SmartHomeServer *parent);
+    OcfDeviceController(QObject *parent);
 
     OICClient* getClient(){return m_client;}
     static void* run(void* param);
@@ -25,7 +26,6 @@ public slots:
 
 protected:
 private:
-    SmartHomeServer* m_server;
     QList<Device*>  m_clientList;
     QTimer m_timer;
     QTimer m_deviceSearchTimer;

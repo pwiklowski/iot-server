@@ -3,12 +3,10 @@
 #include "QFile"
 #include "QTextStream"
 #include <QCoreApplication>
-#include "SmartHomeServer.h"
 #include "IPv4OcfDeviceController.h"
 #include "Rfm69OcfDeviceController.h"
 #include "Rfm69DeviceController.h"
 #include "BleButtonDeviceControler.h"
-#include "WebSocketServer.h"
 
 
 #include <iostream>
@@ -19,7 +17,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-
+#include "QDebug"
 
 
 #define LOG_FILE "/usr/local/wiklosoft/log"
@@ -117,24 +115,16 @@ uint64_t get_current_ms(){
 
 int main(int argc, char *argv[])
 {
-
     for (int i=0; i<argc; i++){
         if (QString(argv[i]) == "-d") init_daemon();
         if (QString(argv[i]) == "-l") qInstallMessageHandler(myMessageHandler);
     }
-
     QCoreApplication a(argc, argv);
-    SmartHomeServer server;
-    IPv4OcfDeviceController ocf(&server);
-    ocf.start();
 
-    Rfm69DeviceController rfm(&server);
+    Rfm69DeviceController rfm;
     rfm.start();
 
     BleButtonDeviceControler ble;
-
-
-    WebSocketServer ws(&server);
 
     return a.exec();
 }

@@ -4,34 +4,23 @@
 #include "QMutexLocker"
 #include "QSerialPort"
 #include "QSerialPortInfo"
-#include "Settings.h"
 
 
 BleButtonDeviceControler::BleButtonDeviceControler()
 {
-    Settings settings;
-
-    if (settings.getValue("port").toString().isEmpty())
+    QList<QSerialPortInfo> infos = QSerialPortInfo::availablePorts();
+    QSerialPortInfo port;
+    foreach (QSerialPortInfo info, infos)
     {
-        QList<QSerialPortInfo> infos = QSerialPortInfo::availablePorts();
-        QSerialPortInfo port;
-        foreach (QSerialPortInfo info, infos)
+        qDebug() << info.portName();
+        if (info.portName().contains("USB"))
         {
-            qDebug() << info.portName();
-            if (info.portName().contains("USB"))
-            {
-                port = info;
-                break;
-            }
+            port = info;
+            break;
         }
-
-        m_serial = new QSerialPort(port, this);
-    }
-    else
-    {
-        m_serial = new QSerialPort(settings.getValue("port").toString(), this);
     }
 
+    m_serial = new QSerialPort(port, this);
     bool res = m_serial->open(QIODevice::ReadWrite);
     qDebug() << "Serial port opened" << res;
     m_serial->setBaudRate(QSerialPort::Baud115200);

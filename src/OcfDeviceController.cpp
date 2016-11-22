@@ -5,14 +5,8 @@
 
 extern uint64_t get_current_ms();
 
-OcfDeviceController::OcfDeviceController(SmartHomeServer* parent) : QObject((QObject*)parent)
+OcfDeviceController::OcfDeviceController(QObject* parent) : QObject(parent)
 {
-    m_server = parent;
-
-    QObject::connect(this, SIGNAL(deviceAdded(IotDevice*)), m_server, SLOT(deviceAdded(IotDevice*)));
-    QObject::connect(this, SIGNAL(deviceRemoved(IotDevice*)), m_server, SLOT(deviceRemoved(IotDevice*)));
-
-
     m_client = new OICClient([&](COAPPacket* packet){
         this->send_packet(packet);
     });
@@ -105,7 +99,6 @@ void OcfDeviceController::findDevices()
             }
 
             Device* d = new Device(dev, this);
-            connect(d, SIGNAL(variablesChanged(QString,QString,QVariantMap)), m_server, SLOT(onValueChanged(QString, QString,QVariantMap)));
             m_clientList.append(d);
             emit deviceAdded(d);
         }
