@@ -132,8 +132,6 @@ int main(int argc, char *argv[])
     rfm.start();
 
     BleButtonDeviceControler ble;
-    ble.start();
-
 
 
     WebSocketServer ws(&server);

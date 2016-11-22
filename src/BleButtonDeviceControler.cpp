@@ -39,10 +39,9 @@ BleButtonDeviceControler::BleButtonDeviceControler()
     m_serial->setParity(QSerialPort::NoParity);
     m_serial->setStopBits(QSerialPort::OneStop);
     m_serial->setFlowControl(QSerialPort::NoFlowControl);
-}
 
-void BleButtonDeviceControler::start(){
-    QTimer::singleShot(20,this, SLOT(read()));
+
+   connect(m_serial, SIGNAL(readyRead()), this, SLOT(read()));
 }
 
 
@@ -51,14 +50,12 @@ void BleButtonDeviceControler::read()
     QMutexLocker locker(&mutex);
     if (m_serial->isOpen())
     {
-        m_serial->waitForReadyRead(1000);
         QByteArray data = m_serial->readAll();
-
         m_buffer.append(data);
     }
-    QTimer::singleShot(20,this, SLOT(read()));
 
-    QMetaObject::invokeMethod(this, "parseMessage", Qt::QueuedConnection);
+    if (m_buffer.size() >0)
+        QMetaObject::invokeMethod(this, "parseMessage", Qt::QueuedConnection);
 }
 
 QString BleButtonDeviceControler::createDeviceId(QString id){
@@ -108,7 +105,7 @@ void BleButtonDeviceControler::parseMessage()
     {
         quint8 messageId = data.at(3);
 
-        if (messageId != lastEvent){
+        if (messageId != lastEvent){ // TODO: make sure that last message id is for specific address
             lastEvent = messageId;
             parseEvent(address, data);
         }

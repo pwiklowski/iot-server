@@ -11,7 +11,6 @@ class BleButtonDeviceControler : public QObject
     Q_OBJECT
 public:
     BleButtonDeviceControler();
-    void start();
 
 public slots:
     void read();
