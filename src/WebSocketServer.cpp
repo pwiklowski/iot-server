@@ -221,7 +221,8 @@ void WebSocketServer::onDeviceListUpdate(){
     event.insert("payload", root);
 
     foreach (WebSocketConnection* s, m_socketList) {
-        s->getSocket()->sendTextMessage(QJsonDocument(event).toJson());
+        if (s->isAuthorized())
+            s->getSocket()->sendTextMessage(QJsonDocument(event).toJson());
 
     }
 }
@@ -240,7 +241,7 @@ void WebSocketServer::onValueChanged(QString id, QString resource, QVariantMap v
     obj.insert("payload", payload);
 
     foreach (WebSocketConnection* s, m_socketList) {
-        if (s->getDeviceSubscription()->contains(id)){
+        if (s->isAuthorized() && s->getDeviceSubscription()->contains(id)){
             s->getSocket()->sendTextMessage(QJsonDocument(obj).toJson());
             s->getSocket()->flush();
         }
