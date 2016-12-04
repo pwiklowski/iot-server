@@ -3,6 +3,7 @@
 WebSocketConnection::WebSocketConnection(QWebSocket* socket)
 {
     m_socket = socket;
+    m_isAuthorized = false;
 }
 
 

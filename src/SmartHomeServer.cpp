@@ -33,6 +33,24 @@ QScriptEngine* SmartHomeServer::getEngine(){
     return &engine;
 }
 
+bool SmartHomeServer::hasAccess(QString token){
+    QUrl url(API_URL  "/websocketaccess");
+
+    QNetworkRequest req(url);
+    req.setRawHeader(QString("Authorization").toLatin1(), token.toLatin1());
+
+
+    QNetworkReply *reply = m_network->get(req);
+
+    QEventLoop loop;
+    QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
+
+    loop.exec();
+
+    return reply->error() == QNetworkReply::NoError;
+}
+
+
 QString SmartHomeServer::getScript(QString id){
     QUrl url(API_URL  "/script/" + id);
     QNetworkReply *reply = m_network->get(QNetworkRequest(url));

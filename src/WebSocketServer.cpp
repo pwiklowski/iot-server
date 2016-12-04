@@ -55,6 +55,26 @@ void WebSocketServer::processTextMessage(QString message)
     int mid = msg.value("mid").toInt(-1);
 
     QString request = payload.value("request").toString();
+
+
+    qDebug() << request;
+    if (request == "RequestAuthorize"){
+        QString token = payload.value("token").toString();
+        bool res = m_server->hasAccess(token);
+
+        qDebug() << "isAuthorized" << res;
+        connection->setAuthorized(res);
+
+        QJsonObject response;
+        response.insert("mid",mid);
+        response.insert("payload",res);
+
+        connection->getSocket()->sendTextMessage(QJsonDocument(response).toJson());
+    }
+
+    if (!connection->isAuthorized()) return;
+
+
     if (request == "RequestGetDevices"){
         QJsonObject response;
         response.insert("mid",mid);

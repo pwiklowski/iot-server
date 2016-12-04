@@ -62,6 +62,7 @@ public slots:
     QScriptEngine* getEngine();
     void debug(QString str );
     void postLog(QString scriptid, QString message);
+    bool hasAccess(QString token);
 private:
     QList<IotDevice*>  m_clientList;
     QMap<QString, quint8> m_ignoreMap;
