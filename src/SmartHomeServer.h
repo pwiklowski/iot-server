@@ -82,6 +82,8 @@ private:
     QList<IotEventSetting*> mSettingsList;
 
     QNetworkAccessManager *m_network;
+
+    QString m_token;
 };
 
 #endif // SMARTHOMESERVER_H

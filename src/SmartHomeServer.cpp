@@ -47,13 +47,21 @@ bool SmartHomeServer::hasAccess(QString token){
 
     loop.exec();
 
+    if (reply->error() == QNetworkReply::NoError){
+        m_token = token;
+    }
+
     return reply->error() == QNetworkReply::NoError;
 }
 
 
 QString SmartHomeServer::getScript(QString id){
     QUrl url(API_URL  "/script/" + id);
-    QNetworkReply *reply = m_network->get(QNetworkRequest(url));
+
+    QNetworkRequest req(url);
+    req.setRawHeader(QString("Authorization").toLatin1(), m_token.toLatin1());
+
+    QNetworkReply *reply = m_network->get(req);
 
     QEventLoop loop;
     QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
@@ -76,7 +84,10 @@ void SmartHomeServer::postLog(QString scriptid, QString message){
 
 QByteArray SmartHomeServer::getDeviceScripts(QString id){
     QUrl url(API_URL  "/scripts/device/" + id);
-    QNetworkReply *reply = m_network->get(QNetworkRequest(url));
+    QNetworkRequest req(url);
+    req.setRawHeader(QString("Authorization").toLatin1(), m_token.toLatin1());
+
+    QNetworkReply *reply = m_network->get(req);
 
     QEventLoop loop;
     QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
