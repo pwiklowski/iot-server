@@ -152,29 +152,46 @@ IotDevice *SmartHomeServer::getDeviceByPath(QString path)
 
 }
 
-QVariant SmartHomeServer::getValue(QString resource){
-    IotDevice* dev = getDeviceByPath(resource);
+QScriptValue SmartHomeServer::getValue(QString deviceId, QString resource){
+    IotDevice* dev = getDeviceById(deviceId);
 
+    if (dev) return 0;
 
     QVariantMap* vars = getVariablesStorage(dev->getID());
     if (!vars) return 0;
 
+    qDebug() << vars->value(resource).toMap();
 
-    return vars->value(resource);
+    return mapToScriptValue(vars->value(resource).toMap());
+
+
+    //return vars->value(resource);
 }
 
-
-
-bool SmartHomeServer::setValue(QString resource, QVariantMap value)
+QScriptValue SmartHomeServer::mapToScriptValue(QMap<QString, QVariant> map)
 {
-    qDebug() << resource << value;
-    IotDevice* client = getDeviceByPath(resource);
+  QScriptValue a = engine.newObject();
+  for(QString key: map.keys())
+  {
+      QVariant value = map.value(key);
 
-    QString variableURI= resource.mid(resource.indexOf("/"));
+      if (value.type() == QVariant::String){
+        a.setProperty(key, value.toString());
+      }else if (value.type() == QVariant::Int){
+        a.setProperty(key, value.toInt());
+      }
+
+  }
+  return a;
+}
+
+bool SmartHomeServer::setValue(QString id, QString resource, QVariantMap value)
+{
+    IotDevice* client = getDeviceById(id);
 
     if (client!=0)
     {
-        IotDeviceVariable* variable = client->getVariable(variableURI);
+        IotDeviceVariable* variable = client->getVariable(resource);
 
         if (variable != 0){
             variable->set(value);

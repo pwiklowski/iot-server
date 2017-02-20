@@ -33,8 +33,8 @@ public slots:
 
     QList<IotDevice *> getClientList();
     void iotEventReceived(QString source,  QByteArray eventData);
-    QVariant getValue(QString resource);
-    bool setValue(QString resource, QVariantMap value);
+    QScriptValue getValue(QString deviceId, QString resource);
+    bool setValue(QString id, QString resource, QVariantMap value);
 
     QMap<QString, QVariantMap> getLastEventMap() { return m_lastEventMap;}
     QMap<QString, QVariantMap*>* getVariablesStorage() {return &m_variablesStorage;}
@@ -64,6 +64,8 @@ public slots:
     void postLog(QString scriptid, QString message);
     bool hasAccess(QString token);
 private:
+    QScriptValue mapToScriptValue(QMap<QString, QVariant> map);
+
     QList<IotDevice*>  m_clientList;
     QMap<QString, quint8> m_ignoreMap;
     QMap<QString, QVariantMap> m_lastEventMap;
