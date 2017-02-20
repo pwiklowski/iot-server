@@ -155,8 +155,6 @@ void OicBaseDevice::send_packet(sockaddr_in destination, COAPPacket* packet){
 
 
 void OicBaseDevice::notifyObservers(QString name, quint8 val){
-    qDebug() <<m_name << m_id << "notiftyObservers";
-
     cbor value(CBOR_TYPE_MAP);
     value.append("rt", "oic.r.switch.binary");
     value.append("value", val);
