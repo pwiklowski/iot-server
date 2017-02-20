@@ -33,6 +33,7 @@ private:
     QVariantMap toQMap(cbor* map);
     OICDeviceResource* m_resource;
     OICDevice* m_device;
+    QString m_id;
 };
 
 class Device : public IotDevice

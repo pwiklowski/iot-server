@@ -29,6 +29,7 @@ DeviceVariable::DeviceVariable(OICDeviceResource *res, OICDevice *dev):
     IotDeviceVariable(0)
 {
     m_device = dev;
+    m_id = dev->getId().c_str();
     m_resource = res;
     m_resourceURI = m_resource->getHref().c_str();
 }
@@ -83,8 +84,9 @@ void DeviceVariable::observe(){
         cbor v;
 
         cbor::parse(&v, response->getPayload());
-       qDebug() << "Value updated" << m_resource->getHref().c_str();
-        emit valueChanged(m_device->getId().c_str(), m_resource->getHref().c_str(), toQMap(&v));
+        //qDebug() << "DeviceVariable value updated" << m_device->getId().c_str() << m_resource->getHref().c_str();
+        emit valueChanged(m_id, m_resourceURI, toQMap(&v));
+
     });
 }
 void DeviceVariable::unobserve(){
