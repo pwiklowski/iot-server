@@ -5,6 +5,11 @@
 ScriptRunner::ScriptRunner(QString scriptId, QString script, QObject *parent) : QObject(parent)
 {
     m_process = new QProcess();
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("NODE_PATH", "/usr/local/lib/node_modules");
+
+    m_process->setProcessEnvironment(env);
     m_script = script;
     m_scriptId = scriptId;
 
