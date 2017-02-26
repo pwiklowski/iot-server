@@ -118,6 +118,22 @@ void WebSocketServer::processTextMessage(QString message)
             IotDeviceVariable* variable = device->getVariable(resource);
             variable->set(value);
         }
+    }else if(request == "RequestGetValue"){
+        QJsonObject response;
+        response.insert("mid",mid);
+        QString id = payload.value("di").toString();
+        QString resource = payload.value("resource").toString();
+
+        QVariantMap* storedVariables = m_server->getVariablesStorage(id);
+        IotDevice* device = m_server->getDeviceById(id);
+        if (device){
+            IotDeviceVariable* variable = device->getVariable(resource);
+            QVariantMap res = storedVariables->value(variable->getResource()).toMap();
+
+            response.insert("payload", QJsonObject::fromVariantMap(res));
+        }
+        connection->getSocket()->sendTextMessage(QJsonDocument(response).toJson());
+
     }else if(request == "RequestSubscribeDevice"){
         QString uuid = payload.value("uuid").toString();
         connection->getDeviceSubscription()->append(uuid);
