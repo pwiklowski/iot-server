@@ -13,6 +13,9 @@
 #include "QJsonArray"
 #include "QJsonValue"
 #include "QVariantMap"
+#include "ScriptRunner.h"
+
+#include "QProcess"
 
 #define API_URL "http://127.0.0.1:9000/api"
 
@@ -23,14 +26,6 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
     Settings* settings = new Settings(this);
     m_server.listen(QHostAddress::Any, 9999);
     m_network = new QNetworkAccessManager(this);
-
-    temp = engine.newObject();
-
-}
-
-
-QScriptEngine* SmartHomeServer::getEngine(){
-    return &engine;
 }
 
 bool SmartHomeServer::hasAccess(QString token){
@@ -96,6 +91,7 @@ QByteArray SmartHomeServer::getDeviceScripts(QString id){
 
     QByteArray data = reply->readAll();
 
+
     delete reply;
 
     return data;
@@ -152,55 +148,6 @@ IotDevice *SmartHomeServer::getDeviceByPath(QString path)
 
 }
 
-QScriptValue SmartHomeServer::getValue(QString deviceId, QString resource){
-    IotDevice* dev = getDeviceById(deviceId);
-
-    if (dev) return 0;
-
-    QVariantMap* vars = getVariablesStorage(dev->getID());
-    if (!vars) return 0;
-
-    qDebug() << vars->value(resource).toMap();
-
-    return mapToScriptValue(vars->value(resource).toMap());
-
-
-    //return vars->value(resource);
-}
-
-QScriptValue SmartHomeServer::mapToScriptValue(QMap<QString, QVariant> map)
-{
-  QScriptValue a = engine.newObject();
-  for(QString key: map.keys())
-  {
-      QVariant value = map.value(key);
-
-      if (value.type() == QVariant::String){
-        a.setProperty(key, value.toString());
-      }else if (value.type() == QVariant::Int){
-        a.setProperty(key, value.toInt());
-      }
-
-  }
-  return a;
-}
-
-bool SmartHomeServer::setValue(QString id, QString resource, QVariantMap value)
-{
-    IotDevice* client = getDeviceById(id);
-
-    if (client!=0)
-    {
-        IotDeviceVariable* variable = client->getVariable(resource);
-
-        if (variable != 0){
-            variable->set(value);
-
-        }
-        return true;
-    }
-    return false;
-}
 QJsonArray SmartHomeServer::getScripts(QString id)
 {
     QStringList scripts;
@@ -210,28 +157,6 @@ QJsonArray SmartHomeServer::getScripts(QString id)
     QJsonDocument response = QJsonDocument::fromJson(responseJson.toLatin1());
     return response.array();
 }
-void SmartHomeServer::saveGlobalObject(QString key, QScriptValue obj)
-{
-    m_cloudScriptStorage.insert(key, obj);
-}
-QScriptValue SmartHomeServer::getGlobalObject(QString key)
-{
-    if (!m_cloudScriptStorage.keys().contains(key))
-        return engine.newObject();
-    return m_cloudScriptStorage.value(key);
-}
-
-
-void SmartHomeServer::iotEventReceived(QString source,  QByteArray eventData)
-{
-
-}
-
-void SmartHomeServer::debug(QString str ) {
-    qDebug() << str;
-    postLog("fcb05237-08c6-4c07-8b9f-c243c558f4fa", str);
-}
-
 
 void SmartHomeServer::runScriptId(QString id, QVariantMap obj){
     QString script = getScript(id);
@@ -239,46 +164,13 @@ void SmartHomeServer::runScriptId(QString id, QVariantMap obj){
 }
 
 void SmartHomeServer::runScript(QString scriptId, QString script, QVariantMap obj){
-    postLog(scriptId, "Start script " + scriptId);
-    //postLog(script, "event: " + obj.));
-    QScriptValue event = engine.newObject();
-
-    foreach(QVariant key, obj.keys()){
-       event.setProperty(key.toString(), engine.newVariant(obj.value(key.toString())));
-    }
 
 
-    engine.globalObject().setProperty("Event", event);
-    engine.globalObject().setProperty("Server", engine.newQObject(this));
+    ScriptRunner* sr = new ScriptRunner(scriptId, script);
+    sr->start();
+    connect(sr, SIGNAL(finished()), sr, SLOT(deleteLater()));
 
-    QScriptValue time = engine.newObject();
-
-    time.setProperty("minute", QDateTime::currentDateTime().time().minute());
-    time.setProperty("hour", QDateTime::currentDateTime().time().hour());
-    time.setProperty("second", QDateTime::currentDateTime().time().second());
-    time.setProperty("day", QDateTime::currentDateTime().date().day());
-    time.setProperty("dayOfWeek", QDateTime::currentDateTime().date().dayOfWeek());
-    time.setProperty("month", QDateTime::currentDateTime().date().month());
-
-    engine.globalObject().setProperty("time", time);
-
-    QScriptValue storage = m_cloudScriptStorage.value(scriptId, engine.newObject());
-    engine.globalObject().setProperty("ctx", storage);
-
-    QScriptValue error = engine.evaluate(script);
-
-    if (error.toString() == "undefined"){
-        postLog(scriptId, "Success");
-    }else{
-        postLog(scriptId, error.toString());
-        qDebug() << "error" << error.toString();
-    }
-
-
-    postLog(scriptId, "End script " + scriptId);
-    m_cloudScriptStorage.insert(scriptId, storage);
 }
-
 
 void SmartHomeServer::onValueChanged(QString id, QString resource, QVariantMap value){
     IotDevice* d = getDeviceById(id);

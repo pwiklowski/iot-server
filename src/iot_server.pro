@@ -53,7 +53,8 @@ SOURCES += main.cpp \
     devices/OicBaseDevice.cpp \
     BleButtonDeviceControler.cpp \
     WebSocketServer.cpp \
-    WebSocketConnection.cpp
+    WebSocketConnection.cpp \
+    ScriptRunner.cpp
 
 HEADERS += \
     SmartHomeServer.h \
@@ -73,4 +74,5 @@ HEADERS += \
     devices/OicBaseDevice.h \
     BleButtonDeviceControler.h \
     WebSocketServer.h \
-    WebSocketConnection.h
+    WebSocketConnection.h \
+    ScriptRunner.h
