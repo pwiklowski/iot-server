@@ -22,6 +22,7 @@ public slots:
     void start();
     void kill ();
     void onLog();
+    void onError();
 
 private:
     QProcess* m_process;

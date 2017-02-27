@@ -27,6 +27,7 @@ void ScriptRunner::start(){
     m_process->start("node", args);
     connect(m_process, SIGNAL(finished(int)), this, SLOT(finish(int)));
     connect(m_process, SIGNAL(readyRead()), this, SLOT(onLog()));
+    connect(m_process, SIGNAL(readyReadStandardError()), this, SLOT(onError()));
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(kill()));
     m_timer.setInterval(5000);
     m_timer.start();
@@ -35,6 +36,14 @@ void ScriptRunner::kill(){
     m_process->kill();
     m_socketServer->onLogMessage(m_scriptId, "Timeout. Kill script");
     emit finished();
+}
+
+void ScriptRunner::onError(){
+    QString line = "Error: " + m_process->readAllStandardError();
+
+    QStringList lines = line.split('\n');
+    foreach(QString l, lines)
+        m_socketServer->onLogMessage(m_scriptId, l);
 }
 
 void ScriptRunner::onLog(){
