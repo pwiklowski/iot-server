@@ -24,9 +24,18 @@ void ScriptRunner::start(){
     args.append(m_tempFile.fileName());
     m_process->start("node", args);
     connect(m_process, SIGNAL(finished(int)), this, SLOT(finish(int)));
+    connect(&m_timer, SIGNAL(timeout()), this, SLOT(kill()));
+    m_timer.setInterval(5000);
+    m_timer.start();
+}
+void ScriptRunner::kill(){
+    m_process->kill();
+    qDebug() << "ScriptRunner::kill" << m_process->readAll();
+    emit finished();
 }
 
 void ScriptRunner::finish(int exitCode){
+    m_timer.stop();
     emit finished();
 }
 

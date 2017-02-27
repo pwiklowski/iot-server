@@ -4,6 +4,7 @@
 #include <QObject>
 #include "QProcess"
 #include "QTemporaryFile"
+#include "QTimer"
 
 class ScriptRunner : public QObject
 {
@@ -18,12 +19,14 @@ signals:
 public slots:
     void finish(int exitCode);
     void start();
+    void kill ();
 
 private:
     QProcess* m_process;
     QTemporaryFile m_tempFile;
     QString m_script;
     QString m_scriptId;
+    QTimer m_timer;
 };
 
 #endif // SCRIPTRUNNER_H
