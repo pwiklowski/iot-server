@@ -24,10 +24,12 @@ void ScriptRunner::start(){
     m_socketServer->onLogMessage(m_scriptId, "Start");
     QStringList args;
     args.append(m_tempFile.fileName());
-    m_process->start("node", args);
     connect(m_process, SIGNAL(finished(int)), this, SLOT(finish(int)));
     connect(m_process, SIGNAL(readyRead()), this, SLOT(onLog()));
     connect(m_process, SIGNAL(readyReadStandardError()), this, SLOT(onError()));
+    m_process->start("node", args);
+    m_runTimer.start();
+
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(kill()));
     m_timer.setInterval(5000);
     m_timer.start();
@@ -52,7 +54,7 @@ void ScriptRunner::onLog(){
 }
 
 void ScriptRunner::finish(int){
-    m_socketServer->onLogMessage(m_scriptId, "Finish");
+    m_socketServer->onLogMessage(m_scriptId, "Finished. Executed in " + QString::number(m_runTimer.elapsed()) + "ms.");
 
     m_timer.stop();
     emit finished();

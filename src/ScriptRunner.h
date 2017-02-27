@@ -5,6 +5,7 @@
 #include "QProcess"
 #include "QTemporaryFile"
 #include "QTimer"
+#include "QElapsedTimer"
 #include "WebSocketServer.h"
 
 class ScriptRunner : public QObject
@@ -30,6 +31,7 @@ private:
     QString m_script;
     QString m_scriptId;
     QTimer m_timer;
+    QElapsedTimer m_runTimer;
     WebSocketServer* m_socketServer;
 };
 
