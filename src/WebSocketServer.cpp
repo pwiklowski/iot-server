@@ -1,4 +1,5 @@
 #include "WebSocketServer.h"
+#include "SmartHomeServer.h"
 #include "QJsonDocument"
 #include "QJsonObject"
 #include "QJsonValue"

@@ -26,7 +26,10 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
     Settings* settings = new Settings(this);
     m_server.listen(QHostAddress::Any, 9999);
     m_network = new QNetworkAccessManager(this);
+
+    m_socketServer = new WebSocketServer(this);
 }
+
 
 bool SmartHomeServer::hasAccess(QString token){
     QUrl url(API_URL  "/websocketaccess");
@@ -164,9 +167,7 @@ void SmartHomeServer::runScriptId(QString id, QVariantMap obj){
 }
 
 void SmartHomeServer::runScript(QString scriptId, QString script, QVariantMap obj){
-
-
-    ScriptRunner* sr = new ScriptRunner(scriptId, script);
+    ScriptRunner* sr = new ScriptRunner(m_socketServer, scriptId, script);
     sr->start();
     connect(sr, SIGNAL(finished()), sr, SLOT(deleteLater()));
 

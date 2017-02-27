@@ -5,12 +5,13 @@
 #include "QProcess"
 #include "QTemporaryFile"
 #include "QTimer"
+#include "WebSocketServer.h"
 
 class ScriptRunner : public QObject
 {
     Q_OBJECT
 public:
-    explicit ScriptRunner(QString scriptId, QString script, QObject *parent = 0);
+    explicit ScriptRunner(WebSocketServer* server, QString scriptId, QString script, QObject *parent = 0);
     ~ScriptRunner();
 
 signals:
@@ -20,6 +21,7 @@ public slots:
     void finish(int exitCode);
     void start();
     void kill ();
+    void onLog();
 
 private:
     QProcess* m_process;
@@ -27,6 +29,7 @@ private:
     QString m_script;
     QString m_scriptId;
     QTimer m_timer;
+    WebSocketServer* m_socketServer;
 };
 
 #endif // SCRIPTRUNNER_H

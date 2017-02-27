@@ -134,7 +134,6 @@ int main(int argc, char *argv[])
     BleButtonDeviceControler ble;
 
 
-    WebSocketServer ws(&server);
 
     return a.exec();
 }

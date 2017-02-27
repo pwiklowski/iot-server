@@ -14,7 +14,7 @@
 
 #include "Device.h"
 #include "QNetworkAccessManager"
-
+#include "WebSocketServer.h"
 
 class SmartHomeServer : public QObject
 {
@@ -69,6 +69,8 @@ private:
     QNetworkAccessManager *m_network;
 
     QString m_token;
+
+    WebSocketServer* m_socketServer;
 };
 
 #endif // SMARTHOMESERVER_H

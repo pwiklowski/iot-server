@@ -2,9 +2,10 @@
 #include "QDebug"
 
 
-ScriptRunner::ScriptRunner(QString scriptId, QString script, QObject *parent) : QObject(parent)
+ScriptRunner::ScriptRunner(WebSocketServer* server, QString scriptId, QString script, QObject *parent) : QObject(parent)
 {
     m_process = new QProcess();
+    m_socketServer = server;
 
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     env.insert("NODE_PATH", "/usr/local/lib/node_modules");
@@ -20,21 +21,30 @@ ScriptRunner::ScriptRunner(QString scriptId, QString script, QObject *parent) : 
 
 
 void ScriptRunner::start(){
+    m_socketServer->onLogMessage(m_scriptId, "Start");
     QStringList args;
     args.append(m_tempFile.fileName());
     m_process->start("node", args);
     connect(m_process, SIGNAL(finished(int)), this, SLOT(finish(int)));
+    connect(m_process, SIGNAL(readyRead()), this, SLOT(onLog()));
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(kill()));
     m_timer.setInterval(5000);
     m_timer.start();
 }
 void ScriptRunner::kill(){
     m_process->kill();
-    qDebug() << "ScriptRunner::kill" << m_process->readAll();
+    m_socketServer->onLogMessage(m_scriptId, "Timeout. Kill script");
     emit finished();
 }
 
-void ScriptRunner::finish(int exitCode){
+void ScriptRunner::onLog(){
+    QString line = m_process->readLine();
+    m_socketServer->onLogMessage(m_scriptId, line);
+}
+
+void ScriptRunner::finish(int){
+    m_socketServer->onLogMessage(m_scriptId, "Finish");
+
     m_timer.stop();
     emit finished();
 }
