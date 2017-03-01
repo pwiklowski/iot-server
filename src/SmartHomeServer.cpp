@@ -168,7 +168,7 @@ void SmartHomeServer::runScriptId(QString id, QVariantMap obj){
 
 void SmartHomeServer::runScript(QString scriptId, QString script, QVariantMap obj){
     ScriptRunner* sr = new ScriptRunner(m_socketServer, scriptId, script);
-    sr->start();
+    sr->start(obj);
     connect(sr, SIGNAL(finished()), sr, SLOT(deleteLater()));
 
 }

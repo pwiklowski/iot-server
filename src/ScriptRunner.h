@@ -20,7 +20,7 @@ signals:
 
 public slots:
     void finish(int exitCode);
-    void start();
+    void start(QVariantMap event);
     void kill ();
     void onLog();
     void onError();

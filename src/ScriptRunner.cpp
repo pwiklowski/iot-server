@@ -1,5 +1,7 @@
 #include "ScriptRunner.h"
 #include "QDebug"
+#include "QJsonDocument"
+#include "QJsonObject"
 
 
 ScriptRunner::ScriptRunner(WebSocketServer* server, QString scriptId, QString script, QObject *parent) : QObject(parent)
@@ -20,10 +22,14 @@ ScriptRunner::ScriptRunner(WebSocketServer* server, QString scriptId, QString sc
 }
 
 
-void ScriptRunner::start(){
+void ScriptRunner::start(QVariantMap event){
     m_socketServer->onLogMessage(m_scriptId, "Start");
+
+    QString eventJson = QJsonDocument::fromVariant(event).toJson();
+
     QStringList args;
     args.append(m_tempFile.fileName());
+    args.append(eventJson);
     connect(m_process, SIGNAL(finished(int)), this, SLOT(finish(int)));
     connect(m_process, SIGNAL(readyRead()), this, SLOT(onLog()));
     connect(m_process, SIGNAL(readyReadStandardError()), this, SLOT(onError()));
