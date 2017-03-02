@@ -23,9 +23,8 @@ ScriptRunner::ScriptRunner(WebSocketServer* server, QString scriptId, QString sc
 
 
 void ScriptRunner::start(QVariantMap event){
-    m_socketServer->onLogMessage(m_scriptId, "Start");
-
     QString eventJson = QJsonDocument::fromVariant(event).toJson();
+    m_socketServer->onLogMessage(m_scriptId, "Start with arg: " + eventJson);
 
     QStringList args;
     args.append(m_tempFile.fileName());
