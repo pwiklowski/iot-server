@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core network script websockets
+QT       += core network
 QT       += serialport
 QT       -= gui
 
