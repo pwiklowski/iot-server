@@ -83,6 +83,7 @@ void BleButtonDeviceControler::parseMessage()
     if (m_buffer.size() <(10+len))
         return;
 
+    if (len == 0) return;
 
     QByteArray data = m_buffer.mid(10,len);
 
