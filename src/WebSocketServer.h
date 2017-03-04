@@ -1,12 +1,13 @@
 #ifndef WEBSOCKETSERVER_H
 #define WEBSOCKETSERVER_H
 
-#include "SmartHomeServer.h"
 #include <QObject>
 #include "QtWebSockets/qwebsocketserver.h"
 #include "QtWebSockets/qwebsocket.h"
 
 #include "WebSocketConnection.h"
+
+class SmartHomeServer;
 
 
 class WebSocketServer : public QObject

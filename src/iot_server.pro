@@ -46,6 +46,7 @@ SOURCES += main.cpp \
     devices/OicBinnarySwitch.cpp \
     devices/OicBaseDevice.cpp \
     BleButtonDeviceControler.cpp
+    ScriptRunner.cpp
 
 HEADERS += \
     SmartHomeServer.h \
@@ -60,3 +61,4 @@ HEADERS += \
     devices/OicBinnarySwitch.h \
     devices/OicBaseDevice.h \
     BleButtonDeviceControler.h
+    ScriptRunner.h

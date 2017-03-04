@@ -16,11 +16,17 @@ public:
     QStringList* getDeviceSubscription() { return &m_deviceSubscriptions; }
     QStringList* getScriptSubscription() { return &m_scriptsSubscriptions; }
 
+    void setAuthorized(bool auth) { m_isAuthorized = auth; }
+
+    bool isAuthorized() { return m_isAuthorized; }
+
 private:
     QWebSocket* m_socket;
 
     QStringList m_scriptsSubscriptions;
     QStringList m_deviceSubscriptions;
+
+    bool m_isAuthorized;
 };
 
 #endif // WEBSOCKETCONNECTION_H

@@ -1,4 +1,5 @@
 #include "WebSocketServer.h"
+#include "SmartHomeServer.h"
 #include "QJsonDocument"
 #include "QJsonObject"
 #include "QJsonValue"
@@ -55,6 +56,26 @@ void WebSocketServer::processTextMessage(QString message)
     int mid = msg.value("mid").toInt(-1);
 
     QString request = payload.value("request").toString();
+
+
+    qDebug() << request;
+    if (request == "RequestAuthorize"){
+        QString token = payload.value("token").toString();
+        bool res = m_server->hasAccess(token);
+
+        qDebug() << "isAuthorized" << res;
+        connection->setAuthorized(res);
+
+        QJsonObject response;
+        response.insert("mid",mid);
+        response.insert("payload",res);
+
+        connection->getSocket()->sendTextMessage(QJsonDocument(response).toJson());
+    }
+
+    if (!connection->isAuthorized()) return;
+
+
     if (request == "RequestGetDevices"){
         QJsonObject response;
         response.insert("mid",mid);
@@ -98,6 +119,22 @@ void WebSocketServer::processTextMessage(QString message)
             IotDeviceVariable* variable = device->getVariable(resource);
             variable->set(value);
         }
+    }else if(request == "RequestGetValue"){
+        QJsonObject response;
+        response.insert("mid",mid);
+        QString id = payload.value("di").toString();
+        QString resource = payload.value("resource").toString();
+
+        QVariantMap* storedVariables = m_server->getVariablesStorage(id);
+        IotDevice* device = m_server->getDeviceById(id);
+        if (device){
+            IotDeviceVariable* variable = device->getVariable(resource);
+            QVariantMap res = storedVariables->value(variable->getResource()).toMap();
+
+            response.insert("payload", QJsonObject::fromVariantMap(res));
+        }
+        connection->getSocket()->sendTextMessage(QJsonDocument(response).toJson());
+
     }else if(request == "RequestSubscribeDevice"){
         QString uuid = payload.value("uuid").toString();
         connection->getDeviceSubscription()->append(uuid);
@@ -201,7 +238,8 @@ void WebSocketServer::onDeviceListUpdate(){
     event.insert("payload", root);
 
     foreach (WebSocketConnection* s, m_socketList) {
-        s->getSocket()->sendTextMessage(QJsonDocument(event).toJson());
+        if (s->isAuthorized())
+            s->getSocket()->sendTextMessage(QJsonDocument(event).toJson());
 
     }
 }
@@ -220,7 +258,7 @@ void WebSocketServer::onValueChanged(QString id, QString resource, QVariantMap v
     obj.insert("payload", payload);
 
     foreach (WebSocketConnection* s, m_socketList) {
-        if (s->getDeviceSubscription()->contains(id)){
+        if (s->isAuthorized() && s->getDeviceSubscription()->contains(id)){
             s->getSocket()->sendTextMessage(QJsonDocument(obj).toJson());
             s->getSocket()->flush();
         }
