@@ -159,7 +159,7 @@ void OicBaseDevice::notifyObservers(QString name, quint8 val){
     value.append("rt", "oic.r.switch.binary");
     value.append("value", val);
 
-    SimpleList<uint8_t> data;
+    Vector<uint8_t> data;
 
     value.dump(&data);
     server->notify(name.toLatin1().data(), &data);
