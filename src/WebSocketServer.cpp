@@ -44,6 +44,7 @@ void WebSocketServer::processTextMessage(QString message)
     QWebSocket *websocket = qobject_cast<QWebSocket *>(sender());
     WebSocketConnection* connection = getSocketConnection(websocket);
 
+    if (connection == 0) return;
     QString url  = connection->getSocket()->requestUrl().path();
 
     qDebug() << "processTextMessage" << message;
