@@ -50,7 +50,12 @@ public slots:
     void deviceRemoved(IotDevice* d);
     void postLog(QString scriptid, QString message);
     bool hasAccess(QString token);
+
+    void runScheduledScript(QString id);
+
+    void initScheduler();
 private:
+    QJsonArray getScripts();
     QScriptValue mapToScriptValue(QMap<QString, QVariant> map);
 
     QList<IotDevice*>  m_clientList;

@@ -31,6 +31,9 @@ INCLUDEPATH += ../../liboic
 LIBS += -L../../libcoap -lcoap
 INCLUDEPATH += ../../libcoap
 
+LIBS += -L../../qcron/src -lqcron
+INCLUDEPATH += ../../qcron/src
+
 INCLUDEPATH += ../../std
 INCLUDEPATH += ../../rfm69-driver
 

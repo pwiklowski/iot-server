@@ -17,6 +17,8 @@
 
 #include "QProcess"
 
+#include "qcron.hpp"
+
 #define API_URL "http://127.0.0.1:9000/api"
 
 
@@ -28,6 +30,7 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
     m_network = new QNetworkAccessManager(this);
 
     m_socketServer = new WebSocketServer(this);
+    initScheduler();
 }
 
 
@@ -50,6 +53,43 @@ bool SmartHomeServer::hasAccess(QString token){
     }
 
     return reply->error() == QNetworkReply::NoError;
+}
+
+void SmartHomeServer::initScheduler(){
+
+    QJsonArray scripts = getScripts();
+
+    for (quint16 i; i<scripts.size(); i++){
+        qDebug() << scripts.at(i).toObject().take("Name").toString() << scripts.at(i).toObject().take("Schedule").toString();
+    }
+
+}
+
+void SmartHomeServer::runScheduledScript(QString id){
+    qDebug() << "runScheduledScript" << id << QDateTime::currentDateTime();
+
+
+
+}
+QJsonArray SmartHomeServer::getScripts(){
+    QUrl url(API_URL  "/scripts");
+
+    QNetworkRequest req(url);
+    req.setRawHeader(QString("Authorization").toLatin1(), m_token.toLatin1());
+
+    QNetworkReply *reply = m_network->get(req);
+
+    QEventLoop loop;
+    QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
+
+    loop.exec();
+
+    QByteArray res = reply->readAll();
+    qDebug() << res;
+    QJsonDocument response = QJsonDocument::fromJson(res);
+
+
+    return response.array();
 }
 
 
