@@ -17,7 +17,6 @@
 
 #include "QProcess"
 
-#include "qcron.hpp"
 
 #define API_URL "http://127.0.0.1:9000/api"
 
@@ -60,7 +59,15 @@ void SmartHomeServer::initScheduler(){
     QJsonArray scripts = getScripts();
 
     for (quint16 i; i<scripts.size(); i++){
-        qDebug() << scripts.at(i).toObject().take("Name").toString() << scripts.at(i).toObject().take("Schedule").toString();
+        QString id = scripts.at(i).toObject().take("Id").toString();
+        QString schedule = scripts.at(i).toObject().take("Schedule").toString();
+
+        if (!schedule.isEmpty()){
+            qDebug() << "Add cron job" << scripts.at(i).toObject().take("Name").toString() << scripts.at(i).toObject().take("Schedule").toString();
+            QCron* job = new QCron(id, schedule);
+            connect(job , SIGNAL(activated(QString)), this, SLOT(runScheduledScript(QString)));
+            m_cronJobs.insert(id ,job);
+        }
     }
 
 }

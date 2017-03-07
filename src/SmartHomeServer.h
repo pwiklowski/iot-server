@@ -15,6 +15,9 @@
 #include "Device.h"
 #include "QNetworkAccessManager"
 #include "WebSocketServer.h"
+#include "qcron.hpp"
+
+
 
 class SmartHomeServer : public QObject
 {
@@ -55,6 +58,7 @@ public slots:
 
     void initScheduler();
 private:
+    QMap<QString, QCron*> m_cronJobs;
     QJsonArray getScripts();
     QScriptValue mapToScriptValue(QMap<QString, QVariant> map);
 
