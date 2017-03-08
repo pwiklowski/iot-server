@@ -156,6 +156,11 @@ void WebSocketServer::processTextMessage(QString message)
         connection->getScriptSubscription()->removeAll(uuid);
         qDebug() << "RequestUnsubscribeScript" << uuid;
 
+    }else if(request == "RequestReloadSchedule"){
+
+        QString id = payload.value("uuid").toString();
+
+        m_server->reloadRule(id);
     }else if(request == "RequestRunScript"){
         qDebug() << "RequestRunScript";
 

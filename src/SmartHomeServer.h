@@ -57,9 +57,11 @@ public slots:
     void runScheduledScript(QString id);
 
     void initScheduler();
+    void reloadRule(QString scriptId);
 private:
     QMap<QString, QCron*> m_cronJobs;
     QJsonArray getScripts();
+    QJsonObject getScriptData(QString id);
     QScriptValue mapToScriptValue(QMap<QString, QVariant> map);
 
     QList<IotDevice*>  m_clientList;

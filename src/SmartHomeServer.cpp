@@ -72,6 +72,23 @@ void SmartHomeServer::initScheduler(){
 
 }
 
+void SmartHomeServer::reloadRule(QString scriptId){
+    qDebug() << "Reload rule " << scriptId;
+    QCron* job = m_cronJobs.take(scriptId);
+    if (job != 0){
+        disconnect(job , SIGNAL(activated(QString)), this, SLOT(runScheduledScript(QString)));
+        delete(job);
+
+        QJsonObject script = getScriptData(scriptId);
+
+        QString schedule = script.take("Schedule").toString();
+
+        QCron* job2 = new QCron(scriptId, schedule);
+        connect(job2 , SIGNAL(activated(QString)), this, SLOT(runScheduledScript(QString)));
+        m_cronJobs.insert(scriptId,job2);
+    }
+}
+
 void SmartHomeServer::runScheduledScript(QString id){
     qDebug() << "runScheduledScript" << id << QDateTime::currentDateTime();
 
@@ -99,8 +116,7 @@ QJsonArray SmartHomeServer::getScripts(){
     return response.array();
 }
 
-
-QString SmartHomeServer::getScript(QString id){
+QJsonObject SmartHomeServer::getScriptData(QString id){
     QUrl url(API_URL  "/script/" + id);
 
     QNetworkRequest req(url);
@@ -115,7 +131,11 @@ QString SmartHomeServer::getScript(QString id){
 
     QJsonDocument response = QJsonDocument::fromJson(reply->readAll());
 
-    QJsonValue s = response.object().take("Scripts").toArray().at(0).toObject().take("Content");
+    return response.object();
+}
+
+QString SmartHomeServer::getScript(QString id){
+    QJsonValue s = getScriptData(id).take("Scripts").toArray().at(0).toObject().take("Content");
 
     QString script = QByteArray::fromBase64(s.toString().toLatin1());
 
