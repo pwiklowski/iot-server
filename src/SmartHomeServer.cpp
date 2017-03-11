@@ -91,10 +91,9 @@ void SmartHomeServer::reloadRule(QString scriptId){
 
 void SmartHomeServer::runScheduledScript(QString id){
     qDebug() << "runScheduledScript" << id << QDateTime::currentDateTime();
-
-
-
+    runScriptId(id, QVariantMap());
 }
+
 QJsonArray SmartHomeServer::getScripts(){
     QUrl url(API_URL  "/scripts");
 
