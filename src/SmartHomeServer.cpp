@@ -77,7 +77,8 @@ void SmartHomeServer::reloadRule(QString scriptId){
     QCron* job = m_cronJobs.take(scriptId);
     if (job != 0){
         disconnect(job , SIGNAL(activated(QString)), this, SLOT(runScheduledScript(QString)));
-        delete(job);
+        delete job;
+        m_cronJobs.remove(scriptId);
 
         QJsonObject script = getScriptData(scriptId);
 
