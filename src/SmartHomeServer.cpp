@@ -59,7 +59,7 @@ void SmartHomeServer::initScheduler(){
     QJsonArray scripts = getScripts();
 
     for (quint16 i; i<scripts.size(); i++){
-        QString id = scripts.at(i).toObject().take("Id").toString();
+        QString id = scripts.at(i).toObject().take("ScriptUuid").toString();
         QString schedule = scripts.at(i).toObject().take("Schedule").toString();
 
         if (!schedule.isEmpty()){
