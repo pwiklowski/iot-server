@@ -9,6 +9,7 @@
 #include "Rfm69DeviceController.h"
 #include "BleButtonDeviceControler.h"
 #include "WebSocketServer.h"
+#include "nrf24lDeviceController.h"
 
 
 #include <iostream>
@@ -131,7 +132,8 @@ int main(int argc, char *argv[])
     Rfm69DeviceController rfm(&server);
     rfm.start();
 
-    BleButtonDeviceControler ble;
+    //BleButtonDeviceControler ble;
+    nrf24lDeviceController nrf;
 
 
 

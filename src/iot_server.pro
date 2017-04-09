@@ -57,7 +57,9 @@ SOURCES += main.cpp \
     BleButtonDeviceControler.cpp \
     WebSocketServer.cpp \
     WebSocketConnection.cpp \
-    ScriptRunner.cpp
+    ScriptRunner.cpp \
+    devices/OcfBinnarySwitchWithBattery.cpp \
+    nrf24lDeviceController.cpp
 
 HEADERS += \
     SmartHomeServer.h \
@@ -78,4 +80,6 @@ HEADERS += \
     BleButtonDeviceControler.h \
     WebSocketServer.h \
     WebSocketConnection.h \
-    ScriptRunner.h
+    ScriptRunner.h \
+    devices/OcfBinnarySwitchWithBattery.h \
+    nrf24lDeviceController.h
