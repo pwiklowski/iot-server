@@ -1,6 +1,5 @@
 #include "QUrl"
 #include "SmartHomeServer.h"
-#include "IotEvent.h"
 #include "QThread"
 #include "Settings.h"
 #include "QDateTime"
@@ -167,25 +166,25 @@ QByteArray SmartHomeServer::getDeviceScripts(QString id){
     return data;
 }
 
-void SmartHomeServer::deviceAdded(IotDevice* d){
+void SmartHomeServer::deviceAdded(Device* d){
    m_variablesStorage.insert(d->getID(), new QVariantMap());
    m_clientList.append(d);
    emit devicesChanged();
 }
 
-void SmartHomeServer::deviceRemoved(IotDevice *d){
+void SmartHomeServer::deviceRemoved(Device *d){
     m_variablesStorage.remove(d->getID());
     m_clientList.removeOne(d);
     emit devicesChanged();
 }
 
-QList<IotDevice *> SmartHomeServer::getClientList()
+QList<Device *> SmartHomeServer::getClientList()
 {
     return m_clientList;
 }
-IotDevice *SmartHomeServer::getDeviceByName(QString name)
+Device *SmartHomeServer::getDeviceByName(QString name)
 {
-    foreach(IotDevice* client, m_clientList)
+    foreach(Device* client, m_clientList)
     {
         if (client->getName() == name)
         {
@@ -195,9 +194,9 @@ IotDevice *SmartHomeServer::getDeviceByName(QString name)
     return 0;
 }
 
-IotDevice *SmartHomeServer::getDeviceById(QString id)
+Device *SmartHomeServer::getDeviceById(QString id)
 {
-    foreach(IotDevice* client, m_clientList)
+    foreach(Device* client, m_clientList)
     {
         if (client->getID() == id)
         {
@@ -207,7 +206,7 @@ IotDevice *SmartHomeServer::getDeviceById(QString id)
     return 0;
 }
 
-IotDevice *SmartHomeServer::getDeviceByPath(QString path)
+Device *SmartHomeServer::getDeviceByPath(QString path)
 {
     QStringList p = path.mid(0, path.indexOf("/")).split(":");
 
@@ -241,7 +240,7 @@ void SmartHomeServer::runScript(QString scriptId, QString script, QVariantMap ob
 }
 
 void SmartHomeServer::onValueChanged(QString id, QString resource, QVariantMap value){
-    IotDevice* d = getDeviceById(id);
+    Device* d = getDeviceById(id);
 
     if (d == 0)
         return;

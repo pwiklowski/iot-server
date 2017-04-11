@@ -17,8 +17,8 @@ public:
 
     void start();
 signals:
-    void deviceAdded(IotDevice* d);
-    void deviceRemoved(IotDevice* d);
+    void deviceAdded(Device* d);
+    void deviceRemoved(Device* d);
 public slots:
     void findDevices();
     void ping();

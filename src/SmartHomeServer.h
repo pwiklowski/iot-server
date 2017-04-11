@@ -4,7 +4,6 @@
 #include <QObject>
 #include "QTimer"
 #include "QTcpServer"
-#include "IotEventSetting.h"
 #include "QtScript/QScriptEngine"
 #include "QJsonObject"
 #include "QMap"
@@ -34,23 +33,23 @@ public slots:
 
     QByteArray getDeviceScripts(QString id);
 
-    QList<IotDevice *> getClientList();
+    QList<Device *> getClientList();
 
     QMap<QString, QVariantMap*>* getVariablesStorage() {return &m_variablesStorage;}
     QVariantMap* getVariablesStorage(QString client_id) {return m_variablesStorage.value(client_id);}
 
     QString getScript(QString id);
-    IotDevice *getDeviceByName(QString name);
-    IotDevice *getDeviceById(QString id);
-    IotDevice *getDeviceByPath(QString path);
+    Device *getDeviceByName(QString name);
+    Device *getDeviceById(QString id);
+    Device *getDeviceByPath(QString path);
 
     void runScriptId(QString id, QVariantMap obj);
     void runScript(QString scriptId, QString script, QVariantMap obj);
 
     void onValueChanged(QString id, QString resource, QVariantMap value);
 
-    void deviceAdded(IotDevice* d);
-    void deviceRemoved(IotDevice* d);
+    void deviceAdded(Device *d);
+    void deviceRemoved(Device *d);
     void postLog(QString scriptid, QString message);
     bool hasAccess(QString token);
 
@@ -64,7 +63,7 @@ private:
     QJsonObject getScriptData(QString id);
     QScriptValue mapToScriptValue(QMap<QString, QVariant> map);
 
-    QList<IotDevice*>  m_clientList;
+    QList<Device*>  m_clientList;
     QMap<QString, quint8> m_ignoreMap;
     QMap<QString, QVariantMap> m_lastEventMap;
     QJsonArray getScripts(QString src);
@@ -74,8 +73,6 @@ private:
     QString generateHash();
 
     QTcpServer m_server;
-
-    QList<IotEventSetting*> mSettingsList;
 
     QNetworkAccessManager *m_network;
 

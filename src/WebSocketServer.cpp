@@ -83,22 +83,22 @@ void WebSocketServer::processTextMessage(QString message)
         response.insert("event", "EventDeviceListUpdate");
 
 
-        QList<IotDevice*> devices = m_server->getClientList();
+        QList<Device*> devices = m_server->getClientList();
         QJsonObject root;
         QString json;
         QJsonArray devs;
 
         for(int i=0; i<devices.length();i++)
         {
-            IotDevice* device = devices.at(i);
+            Device* device = devices.at(i);
             QJsonObject dev;
             dev["name"] = device->getName();
             dev["id"] = device->getID().remove("device:");
 
             QJsonArray vars;
             for(int i=0; i<device->getVariables()->size(); i++){
-                IotDeviceVariable* var = device->getVariables()->at(i);
-                vars.append(QJsonValue::fromVariant(var->getResource()));
+                DeviceVariable* var = device->getVariables()->at(i);
+                vars.append(QJsonValue::fromVariant(var->getHref()));
             }
             dev["variables"] = vars;
 
@@ -115,9 +115,9 @@ void WebSocketServer::processTextMessage(QString message)
         QString resource = payload.value("resource").toString();
         QVariantMap value = payload.value("value").toObject().toVariantMap();
 
-        IotDevice* device = m_server->getDeviceById(id);
+        Device* device = m_server->getDeviceById(id);
         if (device){
-            IotDeviceVariable* variable = device->getVariable(resource);
+            DeviceVariable* variable = device->getVariable(resource);
             variable->set(value);
         }
     }else if(request == "RequestGetValue"){
@@ -127,10 +127,10 @@ void WebSocketServer::processTextMessage(QString message)
         QString resource = payload.value("resource").toString();
 
         QVariantMap* storedVariables = m_server->getVariablesStorage(id);
-        IotDevice* device = m_server->getDeviceById(id);
+        Device* device = m_server->getDeviceById(id);
         if (device){
-            IotDeviceVariable* variable = device->getVariable(resource);
-            QVariantMap res = storedVariables->value(variable->getResource()).toMap();
+            DeviceVariable* variable = device->getVariable(resource);
+            QVariantMap res = storedVariables->value(variable->getHref()).toMap();
 
             response.insert("payload", QJsonObject::fromVariantMap(res));
         }
@@ -173,7 +173,7 @@ void WebSocketServer::processTextMessage(QString message)
 
         QString id = payload.value("uuid").toString();
 
-        IotDevice* dev = m_server->getDeviceById(id);
+        Device* dev = m_server->getDeviceById(id);
 
         QVariantMap* storedVariables = m_server->getVariablesStorage(id);
 
@@ -182,11 +182,11 @@ void WebSocketServer::processTextMessage(QString message)
         {
             for(int i=0; i<dev->getVariables()->size(); i++)
             {
-                IotDeviceVariable* var = dev->getVariables()->at(i);
-                QVariantMap res = storedVariables->value(var->getResource()).toMap();
+                DeviceVariable* var = dev->getVariables()->at(i);
+                QVariantMap res = storedVariables->value(var->getHref()).toMap();
 
                 QJsonObject v;
-                v["name"] = var->getResource();
+                v["name"] = var->getHref();
                 v["values"]= QJsonObject::fromVariantMap(res);
                 vars.append(v);
             }
@@ -217,22 +217,22 @@ void WebSocketServer::onDeviceListUpdate(){
     QJsonObject event;
     event.insert("event", "EventDeviceListUpdate");
 
-    QList<IotDevice*> devices = m_server->getClientList();
+    QList<Device*> devices = m_server->getClientList();
     QJsonObject root;
     QString json;
     QJsonArray devs;
 
     for(int i=0; i<devices.length();i++)
     {
-        IotDevice* device = devices.at(i);
+        Device* device = devices.at(i);
         QJsonObject dev;
         dev["name"] = device->getName();
         dev["id"] = device->getID().remove("device:");
 
         QJsonArray vars;
         for(int i=0; i<device->getVariables()->size(); i++){
-            IotDeviceVariable* var = device->getVariables()->at(i);
-            vars.append(QJsonValue::fromVariant(var->getResource()));
+            DeviceVariable* var = device->getVariables()->at(i);
+            vars.append(QJsonValue(var->getHref()));
         }
         dev["variables"] = vars;
 

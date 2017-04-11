@@ -5,13 +5,9 @@
 #include "QDebug"
 #include "QDateTime"
 
-Device::Device(OICDevice *dev, QObject* parent) :
-    IotDevice(0)
+Device::Device(OICDevice *dev, QObject* parent) :QObject(0)
 {
     m_device = dev;
-    m_type = IOT_DEVICE_TYPE_OCF;
-    m_id =  m_device->getId().c_str();
-    m_name = m_device->getName().c_str();
 
     for(size_t i=0; i<dev->getResources()->size(); i++)
     {
@@ -23,16 +19,23 @@ Device::Device(OICDevice *dev, QObject* parent) :
         m_variables.append(v);
     }
 }
+DeviceVariable* Device::getVariable(QString resource) {
+    for(int i=0; i<m_variables.length();i++){
+        if(m_variables.at(i)->getHref() == resource) return m_variables.at(i);
+    }
+
+    return 0;
+}
 
 
 DeviceVariable::DeviceVariable(OICDeviceResource *res, OICDevice *dev):
-    IotDeviceVariable(0)
+    QObject(0)
 {
     m_device = dev;
     m_id = dev->getId().c_str();
     m_resource = res;
-    m_resourceURI = m_resource->getHref().c_str();
 }
+
 
 QVariantMap DeviceVariable::toQMap(cbor* map){
     QVariantMap m;
@@ -85,7 +88,7 @@ void DeviceVariable::observe(){
 
         cbor::parse(&v, response->getPayload());
         //qDebug() << "DeviceVariable value updated" << m_device->getId().c_str() << m_resource->getHref().c_str();
-        emit valueChanged(m_id, m_resourceURI, toQMap(&v));
+        emit valueChanged(m_id, getHref(), toQMap(&v));
 
     });
 }

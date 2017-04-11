@@ -41,12 +41,9 @@ INCLUDEPATH += ../../rfm69-driver
 SOURCES += main.cpp \
     SmartHomeServer.cpp \
     BleScanner.cpp \
-    IotEventSetting.cpp \
-    IotEvent.cpp \
     Settings.cpp \
     Device.cpp \
     OcfDeviceController.cpp \
-    IotDevice.cpp \
     IPv4OcfDeviceController.cpp \
     Rfm69OcfDeviceController.cpp \
     ../../rfm69-driver/rfm69.cpp \
@@ -64,12 +61,9 @@ SOURCES += main.cpp \
 HEADERS += \
     SmartHomeServer.h \
     BleScanner.h \
-    IotEventSetting.h \
-    IotEvent.h \
     Settings.h \
     Device.h \
     OcfDeviceController.h \
-    IotDevice.h \
     IPv4OcfDeviceController.h \
     Rfm69OcfDeviceController.h \
     ../../rfm69-driver/rfm69.h \
