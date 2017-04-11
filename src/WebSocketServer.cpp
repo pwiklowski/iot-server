@@ -186,7 +186,9 @@ void WebSocketServer::processTextMessage(QString message)
                 QVariantMap res = storedVariables->value(var->getHref()).toMap();
 
                 QJsonObject v;
-                v["name"] = var->getHref();
+                v["href"] = var->getHref();
+                v["rt"] = var->getResourceType();
+                v["if"] = var->getInterface();
                 v["values"]= QJsonObject::fromVariantMap(res);
                 vars.append(v);
             }
