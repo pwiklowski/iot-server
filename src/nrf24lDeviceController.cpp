@@ -55,8 +55,10 @@ OicBaseDevice* nrf24lDeviceController::getDevice(quint16 id){
 void nrf24lDeviceController::read(){
     if (m_serial->isOpen())
     {
-        QByteArray data = m_serial->readLine();
-        parseMessage(data);
+        while(m_serial->canReadLine()){
+            QByteArray data = m_serial->readLine();
+            parseMessage(data);
+        }
     }
 }
 
