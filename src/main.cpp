@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
     //BleButtonDeviceControler ble;
     nrf24lDeviceController nrf;
 
-
+    AlexaEndpoint alexa;
 
     return a.exec();
 }
