@@ -30,32 +30,47 @@ void AlexaEndpoint::handleNewConnection(){
     QString requestNamespace = req["header"].toObject()["namespace"].toString();
     QString requestName = req["header"].toObject()["name"].toString();
     QString messageId = req["header"].toObject()["name"].toString();
+    QJsonObject requestPayload = req["payload"].toObject();
 
     qDebug() << requestNamespace << requestName << messageId;
 
     QString response;
+    QJsonObject res;
+    QJsonObject responseHeader;
+    QJsonObject responsePayload;
+
     if (requestNamespace == "Alexa.ConnectedHome.Discovery" && requestName == "DiscoverAppliancesRequest"){
-        QJsonObject res;
 
-        QJsonObject header;
-        QJsonObject payload;
-
-        header["messageId"] = "ff746d98-ab02-4c9e-9d0d-b44711658414";
-        header["name"] = "DiscoverAppliancesResponse";
-        header["namespace"] = "Alexa.ConnectedHome.Discovery";
-        header["payloadVersion"] = "2";
+        responseHeader["messageId"] = "ff746d98-ab02-4c9e-9d0d-b44711658414";
+        responseHeader["name"] = "DiscoverAppliancesResponse";
+        responseHeader["namespace"] = "Alexa.ConnectedHome.Discovery";
+        responseHeader["payloadVersion"] = "2";
 
         QJsonArray devices = handleDiscovery();
 
-        payload["discoveredAppliances"] = devices;
+        responsePayload["discoveredAppliances"] = devices;
 
-        res["header"] = header;
-        res["payload"] = payload;
+        res["header"] = responseHeader;
+        res["payload"] = responsePayload;
 
         response = QJsonDocument(res).toJson();
-    }else{
-        QJsonObject res = handleCommand(req);
-        response = QJsonDocument(res).toJson();
+    }else if(requestNamespace == "Alexa.ConnectedHome.Control"){
+        if (handleControl(requestName, requestPayload)){
+            responseHeader["messageId"] = "ff746d98-ab02-4c9e-9d0d-b44711658414";
+
+            if (requestName == "TurnOnRequest")
+                responseHeader["name"] = "TurnOnConfirmation";
+
+            if (requestName == "TurnOffRequest")
+                responseHeader["name"] = "TurnOffConfirmation";
+
+            responseHeader["namespace"] = "Alexa.ConnectedHome.Control";
+            responseHeader["payloadVersion"] = "2";
+
+            res["header"] = responseHeader;
+            res["payload"] = responsePayload;
+            response = QJsonDocument(res).toJson();
+        }
     }
 
     socket->write("HTTP/1.1 200 OK\r\n");
@@ -103,6 +118,30 @@ QJsonArray AlexaEndpoint::handleDiscovery(){
     return response;
 }
 
+
+bool AlexaEndpoint::handleControl(QString name, QJsonObject payload){
+    QString deviceId = payload["appliance"].toObject()["applianceId"].toString();
+    qDebug() << deviceId << name;
+
+    Device* d = m_server->getDeviceById(deviceId);
+
+    if (d == 0) return false;
+
+    DeviceVariable* var = d->getVariable("/master");
+
+    if (var == 0) return false;
+
+    QVariantMap m;
+
+    if (name == "TurnOnRequest"){
+        m["value"] = true;
+        var->set(m);
+    }else if (name == "TurnOffRequest"){
+        m["value"] = false;
+        var->set(m);
+    }
+    return true;
+}
 
 QJsonObject AlexaEndpoint::handleCommand(QJsonObject request){
     QJsonObject response;

@@ -14,6 +14,7 @@ public:
     QJsonObject handleCommand(QJsonObject request);
     void handleIntent(QJsonObject intent);
     QJsonArray handleDiscovery();
+    bool handleControl(QString name, QJsonObject payload);
 signals:
 
 public slots:
