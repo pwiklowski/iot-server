@@ -104,14 +104,22 @@ QJsonArray AlexaEndpoint::handleDiscovery(){
 }
 
 
-QJsonObject AlexaEndpoint::handleCommand(){
+QJsonObject AlexaEndpoint::handleCommand(QJsonObject request){
     QJsonObject response;
     response["version"] = "1.0";
 
+    QString requestType = request["request"].toObject()["type"].toString();
+    QJsonObject intent = request["request"].toObject()["intent"].toObject();
+    QString requestIntent = intent["name"].toString();
+
+    qDebug() << requestType << requestIntent << intent;
+
+
+    handleIntent(intent);
 
     QJsonObject outputSpeech;
     outputSpeech["type"] = "PlainText";
-    outputSpeech["text"] = "Yey";
+    outputSpeech["text"] = "yey!";
 
 
     QJsonObject res;
@@ -121,4 +129,30 @@ QJsonObject AlexaEndpoint::handleCommand(){
 
     response["response"] = res;
     return response;
+}
+
+
+void AlexaEndpoint::handleIntent(QJsonObject intent){
+    QString name = intent["name"].toString();
+
+    QJsonObject slot = intent["slots"].toObject();
+
+    if (name == "SetDeviceResourcesValueIntent"){
+        QString resource = slot["Resource"].toObject()["value"].toString();
+        quint16 value = slot["Value"].toObject()["value"].toString().toInt();
+
+        qDebug() << "set" << resource << value;
+
+        Device* d = m_server->getDeviceById("00000000-0000-0000-0001-000000000001");
+
+        QVariantMap m;
+        m["dimmingSetting"] = value;
+
+        DeviceVariable* var = d->getVariable("/lampa/"+resource);
+        if (var != 0){
+            var->set(m);
+        }
+    }
+
+
 }
