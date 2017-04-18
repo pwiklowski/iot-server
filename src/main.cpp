@@ -10,6 +10,7 @@
 #include "BleButtonDeviceControler.h"
 #include "WebSocketServer.h"
 #include "nrf24lDeviceController.h"
+#include "AlexaEndpoint.h"
 
 
 #include <iostream>
@@ -135,7 +136,7 @@ int main(int argc, char *argv[])
     //BleButtonDeviceControler ble;
     nrf24lDeviceController nrf;
 
-    AlexaEndpoint alexa;
+    AlexaEndpoint alexa(&server);
 
     return a.exec();
 }

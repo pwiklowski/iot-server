@@ -42,6 +42,7 @@ public slots:
     Device *getDeviceByName(QString name);
     Device *getDeviceById(QString id);
     Device *getDeviceByPath(QString path);
+    QList<Device*>* getDevices(){ return &m_clientList; }
 
     void runScriptId(QString id, QVariantMap obj);
     void runScript(QString scriptId, QString script, QVariantMap obj);
