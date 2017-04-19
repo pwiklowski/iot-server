@@ -10,7 +10,7 @@ AlexaEndpoint::AlexaEndpoint(SmartHomeServer* server, QObject *parent) : QObject
 {
     m_server = server;
     connect(&m_socketServer, SIGNAL(newConnection()), this, SLOT(handleNewConnection()));
-    m_socketServer.listen(QHostAddress::Any, PORT_NUMBER);
+    qDebug() <<  m_socketServer.listen(QHostAddress::Any, PORT_NUMBER);
 }
 
 
@@ -92,27 +92,64 @@ QJsonArray AlexaEndpoint::handleDiscovery(){
     QList<Device*>* devices = m_server->getDevices();
 
     foreach (Device* dev, *devices) {
-        QJsonObject device;
-        device["applianceId"] = dev->getID();
-        device["manufacturerName"] = "Wiklosoft";
-        device["modelName"] = "Wiklosfot Light Controller";
-        device["version"] = "1";
-        device["friendlyName"] = dev->getName();
-        device["friendlyDescription"] = "Switch by Sample Manufacturer";
-        device["isReachable"] = true;
-        device["version"] = "0.1";
 
-        QJsonObject additionalApplianceDetails;
-        device["additionalApplianceDetails"] = additionalApplianceDetails;
+        if (dev->getVariable("/master") != 0)
+        {
+            QJsonObject device;
 
-        QJsonArray actions;
-        actions.append("turnOn");
-        actions.append("turnOff");
+            device["applianceId"] = dev->getID();
+            device["manufacturerName"] = "Wiklosoft";
+            device["modelName"] = "Wiklosoft Light Controller";
+            device["friendlyName"] = dev->getName();
+            device["friendlyDescription"] = "Switch by Sample Manufacturer";
+            device["isReachable"] = true;
+            device["version"] = "0.1";
 
-        device["actions"] = actions;
+            QJsonObject additionalApplianceDetails;
+            device["additionalApplianceDetails"] = additionalApplianceDetails;
 
-        response.append(device);
+            QJsonArray actions;
+            actions.append("turnOn");
+            actions.append("turnOff");
+
+            device["actions"] = actions;
+
+            response.append(device);
+        }
+
+        QList<DeviceVariable*>* variables = dev->getVariables();
+        foreach (DeviceVariable* var, *variables) {
+            if (var->getResourceType() == "oic.r.light.dimming"){
+                QJsonObject device;
+
+                device["applianceId"] = dev->getID() + ":" + var->getHref().replace("/","_");
+                device["manufacturerName"] = "Wiklosoft";
+                device["modelName"] = "Wiklosoft Light Controller";
+                device["friendlyName"] = var->getName();
+                device["friendlyDescription"] = "OCF resource by Wiklosoft";
+                device["isReachable"] = true;
+                device["version"] = "0.1";
+
+                QJsonObject additionalApplianceDetails;
+                device["additionalApplianceDetails"] = additionalApplianceDetails;
+
+                QJsonArray actions;
+                actions.append("setPercentage");
+                actions.append("incrementPercentage");
+                actions.append("decrementPercentage");
+                device["actions"] = actions;
+
+                response.append(device);
+
+            }
+
+        }
+
+
+
     }
+
+
 
 
     return response;
@@ -127,18 +164,18 @@ bool AlexaEndpoint::handleControl(QString name, QJsonObject payload){
 
     if (d == 0) return false;
 
-    DeviceVariable* var = d->getVariable("/master");
+    DeviceVariable* masterVariable = d->getVariable("/master");
 
-    if (var == 0) return false;
+    if (masterVariable == 0) return false;
 
     QVariantMap m;
 
     if (name == "TurnOnRequest"){
         m["value"] = true;
-        var->set(m);
+        masterVariable->set(m);
     }else if (name == "TurnOffRequest"){
         m["value"] = false;
-        var->set(m);
+        masterVariable->set(m);
     }
     return true;
 }
