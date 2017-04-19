@@ -6,6 +6,21 @@
 
 #define PORT_NUMBER 12345
 
+#define NAMESPACE_CONTROL "Alexa.ConnectedHome.Control"
+#define NAMESPACE_DISCOVERY "Alexa.ConnectedHome.Discovery"
+
+#define DISCOVER_APPLIANCES_REQUEST "DiscoverAppliancesRequest"
+#define DISCOVER_APPLIANCES_RESPONSE "DiscoverAppliancesResponse"
+
+
+#define TURN_ON_REQUEST "TurnOnRequest"
+#define TURN_OFF_REQUEST "TurnOffRequest"
+#define TURN_ON_CONFIRMATION "TurnOnConfirmation"
+#define TURN_OFF_CONFIRMATION "TurnOffConfirmation"
+
+
+#define INCREMENT_PERCENTAGE_REQUEST "IncrementPercentageRequest"
+
 AlexaEndpoint::AlexaEndpoint(SmartHomeServer* server, QObject *parent) : QObject(parent)
 {
     m_server = server;
@@ -39,11 +54,11 @@ void AlexaEndpoint::handleNewConnection(){
     QJsonObject responseHeader;
     QJsonObject responsePayload;
 
-    if (requestNamespace == "Alexa.ConnectedHome.Discovery" && requestName == "DiscoverAppliancesRequest"){
+    if (requestNamespace == NAMESPACE_DISCOVERY && requestName == DISCOVER_APPLIANCES_REQUEST){
 
         responseHeader["messageId"] = "ff746d98-ab02-4c9e-9d0d-b44711658414";
-        responseHeader["name"] = "DiscoverAppliancesResponse";
-        responseHeader["namespace"] = "Alexa.ConnectedHome.Discovery";
+        responseHeader["name"] = DISCOVER_APPLIANCES_RESPONSE;
+        responseHeader["namespace"] = NAMESPACE_DISCOVERY;
         responseHeader["payloadVersion"] = "2";
 
         QJsonArray devices = handleDiscovery();
@@ -54,17 +69,17 @@ void AlexaEndpoint::handleNewConnection(){
         res["payload"] = responsePayload;
 
         response = QJsonDocument(res).toJson();
-    }else if(requestNamespace == "Alexa.ConnectedHome.Control"){
+    }else if(requestNamespace == NAMESPACE_CONTROL){
         if (handleControl(requestName, requestPayload)){
             responseHeader["messageId"] = "ff746d98-ab02-4c9e-9d0d-b44711658414";
 
-            if (requestName == "TurnOnRequest")
-                responseHeader["name"] = "TurnOnConfirmation";
+            if (requestName == TURN_ON_REQUEST)
+                responseHeader["name"] = TURN_ON_CONFIRMATION;
 
-            if (requestName == "TurnOffRequest")
-                responseHeader["name"] = "TurnOffConfirmation";
+            if (requestName == TURN_OFF_REQUEST)
+                responseHeader["name"] =  TURN_OFF_CONFIRMATION;
 
-            responseHeader["namespace"] = "Alexa.ConnectedHome.Control";
+            responseHeader["namespace"] = NAMESPACE_CONTROL;
             responseHeader["payloadVersion"] = "2";
 
             res["header"] = responseHeader;
