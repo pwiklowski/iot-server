@@ -15,13 +15,13 @@ OcfBinnarySwitchWithBattery::OcfBinnarySwitchWithBattery(QString name, QString i
     initialBattery->append("rt", "oic.r.energy.battery");
     initialBattery->append("charge", 100);
 
-    OICResource* button = new OICResource("/switch", "oic.r.switch.binary","oic.if.r", [&](cbor* data){
+    OICResource* button = new OICResource("Switch", "/switch", "oic.r.switch.binary","oic.if.r", [&](cbor* data){
         qDebug() << "switch updated";
     }, initial);
     server->addResource(button);
 
 
-    OICResource* battery = new OICResource("/battery", "oic.r.energy.battery","oic.if.r", [&](cbor* data){
+    OICResource* battery = new OICResource("Battery level", "/battery", "oic.r.energy.battery","oic.if.r", [&](cbor* data){
         qDebug() << "battery updated";
     }, initialBattery);
     server->addResource(battery);

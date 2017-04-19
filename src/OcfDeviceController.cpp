@@ -100,8 +100,12 @@ void OcfDeviceController::findDevices()
                 String href = link.getMapValue("href").toString();
                 String rt = link.getMapValue("rt").toString();
                 String iff = link.getMapValue("if").toString();
+                String n = "empty";
 
-                dev->getResources()->push_back(new OICDeviceResource(href, iff, rt, dev, m_client));
+                if (link.toMap()->has("n"))
+                    n = link.getMapValue("n").toString();
+
+                dev->getResources()->push_back(new OICDeviceResource(n, href, iff, rt, dev, m_client));
             }
 
             Device* d = new Device(dev, this);

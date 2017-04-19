@@ -28,6 +28,7 @@ public slots:
     QString getInterface() { return m_resource->getInterface().c_str();}
     QString getResourceType() { return m_resource->getResourceType().c_str();}
     QString getHref() { return m_resource->getHref().c_str();}
+    QString getName() { return m_resource->getName().c_str();}
 
 private:
     void post(QVariantMap value);

@@ -16,7 +16,7 @@ OicBinnarySwitch::OicBinnarySwitch(QString name, QString id) :
     initial->append("rt", "oic.r.switch.binary");
     initial->append("value", 1);
 
-    OICResource* button = new OICResource("/switch", "oic.r.switch.binary","oic.if.r", [&](cbor* data){
+    OICResource* button = new OICResource("Switch", "/switch", "oic.r.switch.binary","oic.if.r", [&](cbor* data){
         qDebug() << "switch updated";
     }, initial);
     server->addResource(button);
