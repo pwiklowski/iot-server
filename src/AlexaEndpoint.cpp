@@ -19,7 +19,13 @@
 #define TURN_OFF_CONFIRMATION "TurnOffConfirmation"
 
 
+#define SET_PERCENTAGE_REQUEST "SetPercentageRequest"
+#define SET_PERCENTAGE_CONFIRMATION "SetPercentageConfirmation"
 #define INCREMENT_PERCENTAGE_REQUEST "IncrementPercentageRequest"
+#define INCREMENT_PERCENTAGE_CONFIRMATION "IncrementPercentageConfirmation"
+#define DECREMENT_PERCENTAGE_REQUEST "DecrementPercentageRequest"
+#define DECREMENT_PERCENTAGE_CONFIRMATION "DecrementPercentageConfirmation"
+
 
 AlexaEndpoint::AlexaEndpoint(SmartHomeServer* server, QObject *parent) : QObject(parent)
 {
@@ -70,22 +76,7 @@ void AlexaEndpoint::handleNewConnection(){
 
         response = QJsonDocument(res).toJson();
     }else if(requestNamespace == NAMESPACE_CONTROL){
-        if (handleControl(requestName, requestPayload)){
-            responseHeader["messageId"] = "ff746d98-ab02-4c9e-9d0d-b44711658414";
-
-            if (requestName == TURN_ON_REQUEST)
-                responseHeader["name"] = TURN_ON_CONFIRMATION;
-
-            if (requestName == TURN_OFF_REQUEST)
-                responseHeader["name"] =  TURN_OFF_CONFIRMATION;
-
-            responseHeader["namespace"] = NAMESPACE_CONTROL;
-            responseHeader["payloadVersion"] = "2";
-
-            res["header"] = responseHeader;
-            res["payload"] = responsePayload;
-            response = QJsonDocument(res).toJson();
-        }
+        handleControl(requestName, requestPayload, &response);
     }
 
     socket->write("HTTP/1.1 200 OK\r\n");
@@ -134,7 +125,7 @@ QJsonArray AlexaEndpoint::handleDiscovery(){
 
         QList<DeviceVariable*>* variables = dev->getVariables();
         foreach (DeviceVariable* var, *variables) {
-            if (var->getResourceType() == "oic.r.light.dimming"){
+            if (var->getResourceType() == RT_OIC_R_LIGHT_DIMMING){
                 QJsonObject device;
 
                 device["applianceId"] = dev->getID() + ":" + var->getHref().replace("/","_");
@@ -171,79 +162,119 @@ QJsonArray AlexaEndpoint::handleDiscovery(){
 }
 
 
-bool AlexaEndpoint::handleControl(QString name, QJsonObject payload){
-    QString deviceId = payload["appliance"].toObject()["applianceId"].toString();
-    qDebug() << deviceId << name;
-
-    Device* d = m_server->getDeviceById(deviceId);
-
-    if (d == 0) return false;
-
-    DeviceVariable* masterVariable = d->getVariable("/master");
-
-    if (masterVariable == 0) return false;
-
-    QVariantMap m;
-
-    if (name == "TurnOnRequest"){
-        m["value"] = true;
-        masterVariable->set(m);
-    }else if (name == "TurnOffRequest"){
-        m["value"] = false;
-        masterVariable->set(m);
-    }
-    return true;
-}
-
-QJsonObject AlexaEndpoint::handleCommand(QJsonObject request){
-    QJsonObject response;
-    response["version"] = "1.0";
-
-    QString requestType = request["request"].toObject()["type"].toString();
-    QJsonObject intent = request["request"].toObject()["intent"].toObject();
-    QString requestIntent = intent["name"].toString();
-
-    qDebug() << requestType << requestIntent << intent;
-
-
-    handleIntent(intent);
-
-    QJsonObject outputSpeech;
-    outputSpeech["type"] = "PlainText";
-    outputSpeech["text"] = "yey!";
-
-
+bool AlexaEndpoint::handleControl(QString requestName, QJsonObject payload, QString* response){
     QJsonObject res;
-    res["shouldEndSession"] = true;
-    res["outputSpeech"] = outputSpeech;
+    QJsonObject responseHeader;
+    QJsonObject responsePayload;
+
+    responseHeader["messageId"] = "ff746d98-ab02-4c9e-9d0d-b44711658414"; //TODO: generate message ID
+    responseHeader["namespace"] = NAMESPACE_CONTROL;
+    responseHeader["payloadVersion"] = "2";
 
 
-    response["response"] = res;
-    return response;
+    QString applicanceId = payload["appliance"].toObject()["applianceId"].toString();
+    qDebug() << applicanceId << requestName;
+
+    QStringList applicanceIds = applicanceId.split(":");
+
+    QString deviceId = applicanceIds.at(0);
+    QString resource;
+    if (applicanceIds.length() ==2){
+        resource = applicanceIds.at(1);
+    }
+
+    if (requestName == TURN_ON_REQUEST && requestName == TURN_OFF_REQUEST){
+        responseHeader["name"] = requestName == TURN_OFF_REQUEST ? TURN_ON_CONFIRMATION : TURN_OFF_CONFIRMATION;
+        onTurnOnOffRequest(applicanceId, requestName == TURN_ON_REQUEST);
+    }else if(requestName == SET_PERCENTAGE_REQUEST){
+        responseHeader["name"] = SET_PERCENTAGE_CONFIRMATION;
+        quint8 percent = payload["percentageState"].toObject()["value"].toInt();
+
+        onSetPercentageRequest(deviceId, resource.replace("_", "/"), percent);
+    }else if(requestName == INCREMENT_PERCENTAGE_REQUEST){
+        responseHeader["name"] = INCREMENT_PERCENTAGE_CONFIRMATION;
+        quint8 percent = payload["deltaPercentage"].toObject()["value"].toInt();
+        onIncreasePercentageRequest(deviceId, resource.replace("_", "/"), percent);
+    }else if(requestName == DECREMENT_PERCENTAGE_REQUEST){
+        responseHeader["name"] = DECREMENT_PERCENTAGE_CONFIRMATION;
+        quint8 percent = payload["deltaPercentage"].toObject()["value"].toInt();
+        onDecreasePercentageRequest(deviceId, resource.replace("_", "/"), percent);
+    }
+
+
+    res["header"] = responseHeader;
+    res["payload"] = responsePayload;
+    *response = QJsonDocument(res).toJson();
 }
 
+void AlexaEndpoint::onIncreasePercentageRequest(QString deviceId, QString resource, quint8 percent){
+    qDebug() << "onIncreasePercentageRequest" << deviceId << resource << percent;
 
-void AlexaEndpoint::handleIntent(QJsonObject intent){
-    QString name = intent["name"].toString();
+    Device* device = m_server->getDeviceById(deviceId);
+    if (device == 0) return;
+    DeviceVariable* variable = device->getVariable(resource);
+    if (variable == 0) return;
 
-    QJsonObject slot = intent["slots"].toObject();
+    if (variable->getResourceType() == RT_OIC_R_LIGHT_DIMMING){
+        QVariantMap* vars = m_server->getVariablesStorage(deviceId);
+        QString range = vars->value("range").toString();
+        qint16 dimmingSetting = vars->value("dimmingSetting").toInt();
 
-    if (name == "SetDeviceResourcesValueIntent"){
-        QString resource = slot["Resource"].toObject()["value"].toString();
-        quint16 value = slot["Value"].toObject()["value"].toString().toInt();
+        if (range.isEmpty()) range = "0,255";
 
-        qDebug() << "set" << resource << value;
+        QString max = range.split(",").at(1);
 
-        Device* d = m_server->getDeviceById("00000000-0000-0000-0001-000000000001");
+        quint16 value = max.toInt()* percent /100;
+
+        qDebug() << "onIncreasePercentageRequest from:"<< dimmingSetting << "to:" << dimmingSetting+value;
+        dimmingSetting = dimmingSetting + value;
+
+        if (dimmingSetting > max.toInt()) dimmingSetting = max.toInt();
+        if (dimmingSetting < 0) dimmingSetting = 0;
+
+
+        QVariantMap m;
+        m["dimmingSetting"] = dimmingSetting;
+        variable->set(m);
+    }
+}
+
+void AlexaEndpoint::onDecreasePercentageRequest(QString deviceId, QString resource, quint8 percent){
+
+
+}
+
+void AlexaEndpoint::onSetPercentageRequest(QString deviceId, QString resource, quint8 percent){
+    qDebug() << "onSetPercentRequest" << deviceId << resource << percent;
+
+    Device* device = m_server->getDeviceById(deviceId);
+    DeviceVariable* variable = device->getVariable(resource);
+
+    if (variable == 0) return;
+
+    if (variable->getResourceType() == RT_OIC_R_LIGHT_DIMMING){
+        QVariantMap* vars = m_server->getVariablesStorage(deviceId);
+        QString range = vars->value("range").toString();
+
+        if (range.isEmpty()) range = "0,255";
+
+        QString max = range.split(",").at(1);
+
+        quint16 value = max.toInt()* percent /100;
 
         QVariantMap m;
         m["dimmingSetting"] = value;
-
-        DeviceVariable* var = d->getVariable("/lampa/"+resource);
-        if (var != 0){
-            var->set(m);
-        }
+        variable->set(m);
     }
 
-
 }
+
+void AlexaEndpoint::onTurnOnOffRequest(QString deviceId, bool isTurnOn){
+    Device* d = m_server->getDeviceById(deviceId);
+    DeviceVariable* masterVariable = d->getVariable("/master");
+    if (masterVariable == 0) return;
+    QVariantMap m;
+    m["value"] = isTurnOn;
+    masterVariable->set(m);
+}
+

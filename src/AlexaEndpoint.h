@@ -14,7 +14,12 @@ public:
     QJsonObject handleCommand(QJsonObject request);
     void handleIntent(QJsonObject intent);
     QJsonArray handleDiscovery();
-    bool handleControl(QString name, QJsonObject payload);
+    bool handleControl(QString requestName, QJsonObject payload, QString *response);
+
+    void onSetPercentageRequest(QString deviceId, QString resource, quint8 percent);
+    void onIncreasePercentageRequest(QString deviceId, QString resource, quint8 percent);
+    void onDecreasePercentageRequest(QString deviceId, QString resource, quint8 percent);
+    void onTurnOnOffRequest(QString deviceId, bool isTurnOn);
 signals:
 
 public slots:
