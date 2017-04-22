@@ -198,7 +198,7 @@ bool AlexaEndpoint::handleControl(QString requestName, QJsonObject payload, QStr
     }else if(requestName == DECREMENT_PERCENTAGE_REQUEST){
         responseHeader["name"] = DECREMENT_PERCENTAGE_CONFIRMATION;
         quint8 percent = payload["deltaPercentage"].toObject()["value"].toInt();
-        onDecreasePercentageRequest(deviceId, resource.replace("_", "/"), percent);
+        onIncreasePercentageRequest(deviceId, resource.replace("_", "/"), -percent);
     }
 
 
@@ -207,7 +207,7 @@ bool AlexaEndpoint::handleControl(QString requestName, QJsonObject payload, QStr
     *response = QJsonDocument(res).toJson();
 }
 
-void AlexaEndpoint::onIncreasePercentageRequest(QString deviceId, QString resource, quint8 percent){
+void AlexaEndpoint::onIncreasePercentageRequest(QString deviceId, QString resource, qint8 percent){
     qDebug() << "onIncreasePercentageRequest" << deviceId << resource << percent;
 
     Device* device = m_server->getDeviceById(deviceId);
@@ -217,14 +217,15 @@ void AlexaEndpoint::onIncreasePercentageRequest(QString deviceId, QString resour
 
     if (variable->getResourceType() == RT_OIC_R_LIGHT_DIMMING){
         QVariantMap* vars = m_server->getVariablesStorage(deviceId);
-        QString range = vars->value("range").toString();
-        qint16 dimmingSetting = vars->value("dimmingSetting").toInt();
+        QString range = vars->value(resource).toMap()["range"].toString();
+        qDebug() << *vars;
+        qint16 dimmingSetting = vars->value(resource).toMap().value("dimmingSetting").toInt();
 
         if (range.isEmpty()) range = "0,255";
 
         QString max = range.split(",").at(1);
 
-        quint16 value = max.toInt()* percent /100;
+        qint16 value = max.toInt()* percent /100;
 
         qDebug() << "onIncreasePercentageRequest from:"<< dimmingSetting << "to:" << dimmingSetting+value;
         dimmingSetting = dimmingSetting + value;
@@ -237,11 +238,6 @@ void AlexaEndpoint::onIncreasePercentageRequest(QString deviceId, QString resour
         m["dimmingSetting"] = dimmingSetting;
         variable->set(m);
     }
-}
-
-void AlexaEndpoint::onDecreasePercentageRequest(QString deviceId, QString resource, quint8 percent){
-
-
 }
 
 void AlexaEndpoint::onSetPercentageRequest(QString deviceId, QString resource, quint8 percent){

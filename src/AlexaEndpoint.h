@@ -17,8 +17,7 @@ public:
     bool handleControl(QString requestName, QJsonObject payload, QString *response);
 
     void onSetPercentageRequest(QString deviceId, QString resource, quint8 percent);
-    void onIncreasePercentageRequest(QString deviceId, QString resource, quint8 percent);
-    void onDecreasePercentageRequest(QString deviceId, QString resource, quint8 percent);
+    void onIncreasePercentageRequest(QString deviceId, QString resource, qint8 percent);
     void onTurnOnOffRequest(QString deviceId, bool isTurnOn);
 signals:
 
