@@ -183,8 +183,8 @@ bool AlexaEndpoint::handleControl(QString requestName, QJsonObject payload, QStr
         resource = applicanceIds.at(1);
     }
 
-    if (requestName == TURN_ON_REQUEST && requestName == TURN_OFF_REQUEST){
-        responseHeader["name"] = requestName == TURN_OFF_REQUEST ? TURN_ON_CONFIRMATION : TURN_OFF_CONFIRMATION;
+    if (requestName == TURN_ON_REQUEST || requestName == TURN_OFF_REQUEST){
+        responseHeader["name"] = requestName == TURN_ON_REQUEST ? TURN_ON_CONFIRMATION : TURN_OFF_CONFIRMATION;
         onTurnOnOffRequest(applicanceId, requestName == TURN_ON_REQUEST);
     }else if(requestName == SET_PERCENTAGE_REQUEST){
         responseHeader["name"] = SET_PERCENTAGE_CONFIRMATION;
