@@ -267,6 +267,7 @@ void AlexaEndpoint::onSetPercentageRequest(QString deviceId, QString resource, q
 
 void AlexaEndpoint::onTurnOnOffRequest(QString deviceId, bool isTurnOn){
     Device* d = m_server->getDeviceById(deviceId);
+    if (d == 0) return;
     DeviceVariable* masterVariable = d->getVariable("/master");
     if (masterVariable == 0) return;
     QVariantMap m;
