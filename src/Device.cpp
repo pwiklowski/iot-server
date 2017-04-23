@@ -64,6 +64,8 @@ void DeviceVariable::set(QVariantMap value){
             v.toMap()->insert(k.toLatin1().data(), value.value(k).toString().toLatin1().data());
         }else if (val.type() == QVariant::Int || val.type() == QVariant::Double){
             v.toMap()->insert(k.toLatin1().data(), value.value(k).toInt());
+        }else if (val.type() == QVariant::Bool){
+            v.toMap()->insert(k.toLatin1().data(), value.value(k).toBool());
         }
 
 
