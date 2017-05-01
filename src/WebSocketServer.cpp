@@ -5,6 +5,10 @@
 #include "QJsonValue"
 #include "QJsonArray"
 
+
+#define IOT_CLOUD_URL "ws://127.0.0.1:12345/connect"
+
+
 WebSocketServer::WebSocketServer(SmartHomeServer* server) : QObject(server)
 {
     m_server = server;
@@ -16,6 +20,28 @@ WebSocketServer::WebSocketServer(SmartHomeServer* server) : QObject(server)
     if (m_webSocketServer->listen(QHostAddress::Any, 7002)) {
         connect(m_webSocketServer, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
     }
+
+
+    m_iotCloudConnection = new WebSocketConnection(new QWebSocket());
+    m_iotCloudConnection->getSocket()->open(QUrl(IOT_CLOUD_URL));
+
+    connect(m_iotCloudConnection->getSocket(), &QWebSocket::connected, [=](){
+        m_iotCloudConnection->getSocket()->sendTextMessage("auth:a5193628-c365-45a3-b5e2-763e489c084d");
+        m_socketList.append(m_iotCloudConnection);
+    });
+    connect(m_iotCloudConnection->getSocket(), &QWebSocket::disconnected, [=](){
+        qDebug() << "ws disconnected" << m_iotCloudConnection->getSocket()->closeCode() << m_iotCloudConnection->getSocket()->closeReason();
+        m_socketList.removeOne(m_iotCloudConnection);
+
+        QTimer::singleShot(500, [=]{
+            m_iotCloudConnection->getSocket()->open(QUrl(IOT_CLOUD_URL));
+        });
+
+    });
+
+    connect(m_iotCloudConnection->getSocket(), &QWebSocket::textMessageReceived, [=](QString textMessage){
+        processMessage(textMessage, m_iotCloudConnection);
+    });
 }
 
 void WebSocketServer::onNewConnection()
@@ -46,6 +72,9 @@ void WebSocketServer::processTextMessage(QString message)
 
     if (connection == 0) return;
     QString url  = connection->getSocket()->requestUrl().path();
+
+}
+void WebSocketServer::processMessage(QString message, WebSocketConnection* connection){
 
     qDebug() << "processTextMessage" << message;
 

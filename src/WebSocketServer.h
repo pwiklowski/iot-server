@@ -21,6 +21,7 @@ signals:
 public slots:
     void onNewConnection();
     void processTextMessage(QString message);
+    void processMessage(QString message, WebSocketConnection *connection);
     void socketDisconnected();
     void onValueChanged(QString id, QString resource, QVariantMap value);
     void onDeviceListUpdate();
@@ -31,6 +32,8 @@ private:
     SmartHomeServer* m_server;
     QWebSocketServer* m_webSocketServer;
     QList<WebSocketConnection*> m_socketList;
+
+    WebSocketConnection* m_iotCloudConnection;
 };
 
 #endif // WEBSOCKETSERVER_H
