@@ -104,6 +104,7 @@ QJsonArray SmartHomeServer::getScripts(){
 
     QEventLoop loop;
     QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
+    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
 
     loop.exec();
 
