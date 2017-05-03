@@ -156,6 +156,7 @@ QByteArray SmartHomeServer::getDeviceScripts(QString id){
 
     QEventLoop loop;
     QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
+    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
 
     loop.exec();
 
