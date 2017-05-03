@@ -4,7 +4,10 @@
 #include "QJsonObject"
 #include "QJsonValue"
 #include "QJsonArray"
-
+#include "QNetworkAccessManager"
+#include "QNetworkRequest"
+#include "QNetworkReply"
+#include "QEventLoop"
 
 #define IOT_CLOUD_URL "ws://127.0.0.1:12345/connect"
 
@@ -26,7 +29,21 @@ WebSocketServer::WebSocketServer(SmartHomeServer* server) : QObject(server)
     m_iotCloudConnection->getSocket()->open(QUrl(IOT_CLOUD_URL));
 
     connect(m_iotCloudConnection->getSocket(), &QWebSocket::connected, [=](){
-        m_iotCloudConnection->getSocket()->sendTextMessage("auth:a5193628-c365-45a3-b5e2-763e489c084d");
+        QJsonObject config = m_server->readSettings();
+
+        QString token = config.value("iot.token").toString();
+        QString refresh_token =  config.value("iot.refresh_token").toString();
+        long tokenEpire = config.value("iot.token.exp").toVariant().toLongLong();
+
+
+        if (tokenEpire < QDateTime::currentMSecsSinceEpoch()){
+            qDebug() << "refreshToken";
+            refreshToken();
+
+        }
+
+
+        //m_iotCloudConnection->getSocket()->sendTextMessage("auth:a5193628-c365-45a3-b5e2-763e489c084d");
         m_socketList.append(m_iotCloudConnection);
     });
     connect(m_iotCloudConnection->getSocket(), &QWebSocket::disconnected, [=](){
@@ -42,7 +59,55 @@ WebSocketServer::WebSocketServer(SmartHomeServer* server) : QObject(server)
     connect(m_iotCloudConnection->getSocket(), &QWebSocket::textMessageReceived, [=](QString textMessage){
         processMessage(textMessage, m_iotCloudConnection);
     });
+
+
+
 }
+void WebSocketServer::refreshToken(){
+    QJsonObject settings = m_server->readSettings();
+
+    QString client = settings.value("auth.client").toString();
+    QString secret = settings.value("auth.secret").toString();
+    QString refresh_token = settings.value("iot.token.refresh_token").toString();
+
+
+    QUrl url("https://auth.wiklosoft.com/v1/oauth/tokens");
+
+    QNetworkRequest req(url);
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    QString concatenated =  client+ ":" +secret;
+    QByteArray data = concatenated.toLocal8Bit().toBase64();
+    QString headerData = "Basic " + data;
+    req.setRawHeader("Authorization", headerData.toLocal8Bit());
+
+    QNetworkAccessManager network;
+
+    QNetworkReply *reply = network.post(req,QString("grant_type=refresh_token&refresh_token="+refresh_token).toLatin1());
+
+    QEventLoop loop;
+    QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
+    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+
+    loop.exec();
+
+    QString response = reply->readAll();
+
+    QJsonObject doc = QJsonDocument::fromJson(response.toLatin1()).object();
+
+    QString newToken = doc.value("access_token").toString();
+    QString newRefreshToken = doc.value("refresh_token").toString();
+    long tokenEpire = doc.value("expires_in").toInt();
+
+
+    settings["iot.token"] = newToken;
+    settings["iot.token.refresh_token"] = newRefreshToken;
+    settings["iot.token.exp"] = QDateTime::currentMSecsSinceEpoch() + (tokenEpire*1000);
+
+    m_server->writeSettings(settings);
+
+
+}
+
 
 void WebSocketServer::onNewConnection()
 {

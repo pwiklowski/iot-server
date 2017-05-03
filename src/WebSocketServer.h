@@ -19,6 +19,7 @@ public:
 signals:
 
 public slots:
+    void refreshToken();
     void onNewConnection();
     void processTextMessage(QString message);
     void processMessage(QString message, WebSocketConnection *connection);

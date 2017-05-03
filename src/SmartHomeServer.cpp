@@ -18,7 +18,7 @@
 
 
 #define API_URL "http://127.0.0.1:9000/api"
-
+#define SETTINGS_FILE "config.json"
 
 SmartHomeServer::SmartHomeServer(QObject *parent) :
     QObject(parent)
@@ -30,6 +30,28 @@ SmartHomeServer::SmartHomeServer(QObject *parent) :
     m_socketServer = new WebSocketServer(this);
     initScheduler();
 }
+
+QJsonObject SmartHomeServer::readSettings(){
+    QString settings;
+    QFile file;
+    file.setFileName("config.json");
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    settings = file.readAll();
+    file.close();
+
+    return QJsonDocument::fromJson(settings.toUtf8()).object();
+}
+
+void SmartHomeServer::writeSettings(QJsonObject data){
+    QFile file;
+    file.setFileName("config.json");
+    file.open(QIODevice::WriteOnly| QIODevice::Text);
+
+    file.write(QJsonDocument(data).toJson());
+    file.close();
+
+}
+
 
 
 bool SmartHomeServer::hasAccess(QString token){

@@ -24,6 +24,9 @@ class SmartHomeServer : public QObject
 public:
     explicit SmartHomeServer(QObject *parent = 0);
 
+    QJsonObject readSettings();
+    void writeSettings(QJsonObject data);
+
 signals:
     void devicesChanged();
     void valueChanged(QString id, QString resource, QVariantMap value);
