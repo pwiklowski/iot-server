@@ -348,10 +348,20 @@ void WebSocketServer::onDeviceListUpdate(){
         dev["name"] = device->getName();
         dev["id"] = device->getID().remove("device:");
 
+        QVariantMap* storedVariables = m_server->getVariablesStorage(device->getID());
         QJsonArray vars;
         for(int i=0; i<device->getVariables()->size(); i++){
+
             DeviceVariable* var = device->getVariables()->at(i);
-            vars.append(QJsonValue(var->getHref()));
+            QVariantMap res = storedVariables->value(var->getHref()).toMap();
+
+            QJsonObject v;
+            v["href"] = var->getHref();
+            v["rt"] = var->getResourceType();
+            v["if"] = var->getInterface();
+            v["n"] = var->getName();
+            v["values"]= QJsonObject::fromVariantMap(res);
+            vars.append(v);
         }
         dev["variables"] = vars;
 
