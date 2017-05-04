@@ -56,8 +56,7 @@ SOURCES += main.cpp \
     WebSocketConnection.cpp \
     ScriptRunner.cpp \
     devices/OcfBinnarySwitchWithBattery.cpp \
-    nrf24lDeviceController.cpp \
-    AlexaEndpoint.cpp
+    nrf24lDeviceController.cpp
 
 HEADERS += \
     SmartHomeServer.h \
@@ -77,5 +76,4 @@ HEADERS += \
     WebSocketConnection.h \
     ScriptRunner.h \
     devices/OcfBinnarySwitchWithBattery.h \
-    nrf24lDeviceController.h \
-    AlexaEndpoint.h
+    nrf24lDeviceController.h
