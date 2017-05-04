@@ -30,6 +30,8 @@ WebSocketServer::WebSocketServer(SmartHomeServer* server) : QObject(server)
 
     connect(m_iotCloudConnection->getSocket(), &QWebSocket::connected, [=](){
         QJsonObject config = m_server->readSettings();
+        QString clientUuid = config.value("uuid").toString();
+        QString name = config.value("name").toString();
 
         QString token = config.value("iot.token").toString();
         QString refresh_token =  config.value("iot.refresh_token").toString();
@@ -48,6 +50,8 @@ WebSocketServer::WebSocketServer(SmartHomeServer* server) : QObject(server)
 
         QJsonObject payload;
         payload.insert("token", token);
+        payload.insert("uuid", clientUuid);
+        payload.insert("name",name);
         authMessage.insert("payload", payload);
 
 
