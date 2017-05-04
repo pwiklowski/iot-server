@@ -39,11 +39,19 @@ WebSocketServer::WebSocketServer(SmartHomeServer* server) : QObject(server)
         if (tokenEpire < QDateTime::currentMSecsSinceEpoch()){
             qDebug() << "refreshToken";
             refreshToken();
+            config = m_server->readSettings();
+            token = config.value("iot.token").toString();
 
         }
+        QJsonObject authMessage;
+        authMessage.insert("name", "RequestAuthorize");
+
+        QJsonObject payload;
+        payload.insert("token", token);
+        authMessage.insert("payload", payload);
 
 
-        //m_iotCloudConnection->getSocket()->sendTextMessage("auth:a5193628-c365-45a3-b5e2-763e489c084d");
+        m_iotCloudConnection->getSocket()->sendTextMessage(QJsonDocument(authMessage).toJson());
         m_socketList.append(m_iotCloudConnection);
     });
     connect(m_iotCloudConnection->getSocket(), &QWebSocket::disconnected, [=](){
