@@ -56,6 +56,7 @@ WebSocketServer::WebSocketServer(SmartHomeServer* server) : QObject(server)
 
 
         m_iotCloudConnection->getSocket()->sendTextMessage(QJsonDocument(authMessage).toJson());
+        m_iotCloudConnection->setAuthorized(true);
         m_socketList.append(m_iotCloudConnection);
     });
     connect(m_iotCloudConnection->getSocket(), &QWebSocket::disconnected, [=](){
