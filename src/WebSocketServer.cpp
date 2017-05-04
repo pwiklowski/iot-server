@@ -162,7 +162,7 @@ void WebSocketServer::processMessage(QString message, WebSocketConnection* conne
     QJsonObject payload = msg.value("payload").toObject();
     int mid = msg.value("mid").toInt(-1);
 
-    QString request = payload.value("request").toString();
+    QString request = payload.value("name").toString();
 
 
     qDebug() << request;
@@ -186,7 +186,7 @@ void WebSocketServer::processMessage(QString message, WebSocketConnection* conne
     if (request == "RequestGetDevices"){
         QJsonObject response;
         response.insert("mid",mid);
-        response.insert("event", "EventDeviceListUpdate");
+        response.insert("name", "EventDeviceListUpdate");
 
 
         QList<Device*> devices = m_server->getClientList();
@@ -334,7 +334,7 @@ void WebSocketServer::socketDisconnected()
 
 void WebSocketServer::onDeviceListUpdate(){
     QJsonObject event;
-    event.insert("event", "EventDeviceListUpdate");
+    event.insert("name", "EventDeviceListUpdate");
 
     QList<Device*> devices = m_server->getClientList();
     QJsonObject root;
@@ -373,7 +373,7 @@ void WebSocketServer::onValueChanged(QString id, QString resource, QVariantMap v
     qDebug() << "WebSocket onValueChanged" << id << resource << value;
 
     QJsonObject obj;
-    obj.insert("event", "EventValueUpdate");
+    obj.insert("name", "EventValueUpdate");
 
     QJsonObject payload;
     payload.insert("di", id);
@@ -394,7 +394,7 @@ void WebSocketServer::onValueChanged(QString id, QString resource, QVariantMap v
 void WebSocketServer::onLogMessage(QString uuid, QString message){
     qDebug() << "onLogMessage" << uuid << message;
     QJsonObject obj;
-    obj.insert("event", "EventLog");
+    obj.insert("name", "EventLog");
 
     QJsonObject payload;
     payload.insert("uuid",uuid);
