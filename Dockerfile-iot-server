@@ -1,0 +1,26 @@
+FROM lamtev/qt
+
+RUN apt-get update
+#RUN apt-get install -y qt5-default libqt5websockets5 libqt5script5 libqt5serialport5 
+RUN apt-get install -y cmake build-essential  qt57serialport  qt57script qt57websockets
+
+RUN apt-get install -y nodejs
+
+COPY tmp/iot_server /iot_server
+COPY tmp/liboic/ /liboic
+COPY tmp/libcoap/ /libcoap
+COPY tmp/std/ /std
+COPY tmp/rfm69-driver/ /rfm69-driver
+COPY tmp/qcron /qcron
+
+COPY src/config.json /iot_server/src/config.json
+
+
+RUN cd /libcoap && cmake . && make
+RUN cd /liboic && cmake . && make 
+RUN cd /qcron && cmake . && make 
+RUN cd /iot_server/src && qmake && make
+
+COPY entrypoint.sh /
+
+ENTRYPOINT ["/entrypoint.sh"]

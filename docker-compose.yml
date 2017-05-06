@@ -1,0 +1,9 @@
+version: '2'
+
+services:
+  iotserver:
+    restart: unless-stoppped
+    network_mode: "host"
+    build:
+      context: .
+      dockerfile: Dockerfile-iot-server
