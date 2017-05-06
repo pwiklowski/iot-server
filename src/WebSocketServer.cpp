@@ -9,7 +9,7 @@
 #include "QNetworkReply"
 #include "QEventLoop"
 
-#define IOT_CLOUD_URL "ws://127.0.0.1:12345/connect"
+#define IOT_CLOUD_URL "wss://iot.wiklosoft.com/connect"
 
 
 WebSocketServer::WebSocketServer(SmartHomeServer* server) : QObject(server)
