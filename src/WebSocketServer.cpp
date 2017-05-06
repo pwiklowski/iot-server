@@ -111,14 +111,12 @@ void WebSocketServer::refreshToken(){
     QString newRefreshToken = doc.value("refresh_token").toString();
     long tokenEpire = doc.value("expires_in").toInt();
 
-
-    settings["iot.token"] = newToken;
-    settings["iot.token.refresh_token"] = newRefreshToken;
-    settings["iot.token.exp"] = QDateTime::currentMSecsSinceEpoch() + (tokenEpire*1000);
-
-    m_server->writeSettings(settings);
-
-
+    if (!newToken.isEmpty()){
+        settings["iot.token"] = newToken;
+        settings["iot.token.refresh_token"] = newRefreshToken;
+        settings["iot.token.exp"] = QDateTime::currentMSecsSinceEpoch() + (tokenEpire*1000);
+        m_server->writeSettings(settings);
+    }
 }
 
 
