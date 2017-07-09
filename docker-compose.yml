@@ -2,7 +2,7 @@ version: '2'
 
 services:
   iotserver:
-    restart: unless-stoppped
+    restart: always
     network_mode: "host"
     build:
       context: .
