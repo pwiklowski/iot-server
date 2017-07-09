@@ -161,7 +161,7 @@ void WebSocketServer::processMessage(QString message, WebSocketConnection* conne
     QJsonObject payload = msg.value("payload").toObject();
     int mid = msg.value("mid").toInt(-1);
 
-    QString request = payload.value("name").toString();
+    QString request =msg.value("name").toString();
 
 
     qDebug() << request;
