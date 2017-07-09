@@ -34,7 +34,7 @@ WebSocketServer::WebSocketServer(SmartHomeServer* server) : QObject(server)
         QString name = config.value("name").toString();
 
         QString token = config.value("iot.token").toString();
-        QString refresh_token =  config.value("iot.refresh_token").toString();
+        QString refresh_token =  config.value("iot.token.refresh_token").toString();
         long tokenEpire = config.value("iot.token.exp").toVariant().toLongLong();
 
 
